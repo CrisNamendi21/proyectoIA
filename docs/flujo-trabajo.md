@@ -4,7 +4,7 @@
 
 `main` conserva versiones estables y `develop` reúne el trabajo de integración. El plan propone ramas individuales `feature/core-auth-cris`, `feature/ai-infra-jean` y `feature/plans-catalogs-alejandra`, con PR hacia `develop`. **Por instrucción expresa, esta preparación documental se está haciendo directamente en `develop`.** Antes de iniciar trabajo paralelo, cada integrante debe actualizarse desde `develop` y crear su rama de feature. No se harán push, merges ni commits de esta sesión hasta revisión del usuario.
 
-Los commits futuros deben ser pequeños y descriptivos. Cada PR debe explicar el cambio, las pruebas ejecutadas y cómo reproducirlas; Cris revisa contratos e incompatibilidades y el autor corrige su módulo antes de integrar. Nadie modifica archivos de otro módulo sin avisar y coordinar. `main.py` queda bajo Cris; Jean y Alejandra exportan routers. `requirements.txt` y `compose.yaml` quedan bajo Jean; los modelos compartidos bajo Cris durante la semana.
+Los commits futuros deben ser pequeños y descriptivos. Cada PR debe explicar el cambio, las pruebas ejecutadas y cómo reproducirlas; Cris revisa contratos e incompatibilidades y el autor corrige su módulo antes de integrar. Nadie modifica archivos de otro módulo sin avisar y coordinar. `main.py` queda bajo Cris; Jean y Alejandra exportan routers. `compose.yaml` queda bajo Jean; `pyproject.toml` y `uv.lock` son la fuente oficial de dependencias y sus cambios se coordinan entre Cris y Jean. Los modelos compartidos quedan bajo Cris durante la semana.
 
 ## Hitos del 10 al 16 de octubre
 

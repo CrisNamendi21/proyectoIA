@@ -16,6 +16,7 @@ Al preparar esta guía, el repositorio solo contiene documentación y `.gitignor
 - Usa patrones de SQLAlchemy 2 (`Mapped`, `mapped_column`, sesiones controladas por petición) y relaciones explícitas. Evita consultas y commits escondidos en modelos o esquemas.
 - Valida datos de entrada y la salida de IA con Pydantic. No confíes en JSON producido por Ollama sin validarlo.
 - PostgreSQL es la única base de datos del MVP. Ejecuta PostgreSQL en un contenedor, no lo instales directamente en el sistema operativo. Considera JSONB para contenido pedagógico flexible, manteniendo relaciones, usuarios y catálogos como datos relacionales.
+- Usa `uv` para gestionar Python y las dependencias. `pyproject.toml` declara las dependencias y `uv.lock` fija las versiones reproducibles; ambos son la fuente oficial acordada con Jean. No mantengas un `requirements.txt` paralelo.
 - Mantén secretos y credenciales fuera de Git. Documenta solo nombres y valores de ejemplo no sensibles en `.env.example` cuando Jean lo prepare; no copies archivos `.env` con valores reales.
 
 ## Propiedad y contratos
@@ -23,7 +24,7 @@ Al preparar esta guía, el repositorio solo contiene documentación y `.gitignor
 | Responsable principal | Archivos previstos |
 | --- | --- |
 | Cris | `app/main.py`, `app/core/`, `app/db/`, `app/models/`, `app/api/auth.py`, `tests/test_auth.py` |
-| Jean | `Dockerfile`, `compose.yaml`, `.env.example`, `requirements.txt`, `app/services/ai/`, `app/api/generation.py`, `tests/test_ai.py` |
+| Jean | `Dockerfile`, `compose.yaml`, `.env.example`, `app/services/ai/`, `app/api/generation.py`, `tests/test_ai.py`; coordina con Cris los cambios de dependencias en `pyproject.toml` y `uv.lock` |
 | Alejandra | `app/api/catalogs.py`, `app/api/plans.py`, `app/schemas/catalogs.py`, `app/schemas/plans.py`, `app/services/plans.py`, `tests/test_catalogs.py`, `tests/test_plans.py` |
 
 Antes de editar archivos de otro responsable o cambiar entidades/contratos compartidos, explica la necesidad y coordina el cambio con el equipo. Cris registra los routers en `main.py`; Jean y Alejandra exportan sus routers. Los acuerdos propuestos y su estado constan en [contratos](docs/contratos.md) y [modelo de datos](docs/modelo-datos.md). No conviertas propuestas en contratos aprobados por mera implementación.

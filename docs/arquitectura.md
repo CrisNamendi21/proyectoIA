@@ -26,7 +26,7 @@ El router traduce HTTP y usa dependencias comunes; el servicio aplica la lógica
 
 PostgreSQL es la base principal confirmada porque usuarios, catálogos y propiedad de las planificaciones tienen relaciones que conviene expresar con claves y restricciones. La propuesta es guardar los vínculos estables como columnas relacionales y el cuerpo pedagógico editable de `Planning` en JSONB. Así se puede revisar la ficha oficial sin rediseñar inmediatamente todas las tablas. JSONB no sustituye las claves foráneas ni la validación Pydantic. Aún deben decidirse sus campos, versión y reglas de actualización.
 
-PostgreSQL se ejecutará como contenedor Docker. Jean es responsable principal de `compose.yaml`, `Dockerfile`, `.env.example` y `requirements.txt`; Cris coordina con él la URL de conexión y las variables necesarias. Ningún comando de arranque ha sido verificado todavía.
+PostgreSQL se ejecutará como contenedor Docker. Jean es responsable principal de `compose.yaml`, `Dockerfile` y `.env.example`; Cris coordina con él la URL de conexión y las variables necesarias. El equipo confirmó que `pyproject.toml` y `uv.lock`, administrados con `uv`, son la fuente oficial de dependencias y que cualquier cambio se coordina entre Cris y Jean. Ningún comando de arranque de la aplicación ha sido verificado todavía.
 
 ## Generación y pruebas
 

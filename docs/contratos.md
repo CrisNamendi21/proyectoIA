@@ -7,7 +7,7 @@ El plan pide congelar contratos base el sábado 10 de octubre para permitir el t
 | Área | Confirmado por el plan o la instrucción del equipo | Acuerdo necesario antes de implementar |
 | --- | --- | --- |
 | PostgreSQL | Base relacional en contenedor Docker; SQLAlchemy 2 como ORM. | Nombre de servicio, puerto, credenciales de desarrollo, URL dentro/fuera de Compose, creación inicial de tablas y datos. |
-| Entorno | Jean prepara `.env.example` y `requirements.txt`; Cris consume la configuración. | Nombres exactos de variables para BD, secreto de auth y URL de Ollama; valores de ejemplo no sensibles. |
+| Entorno | `pyproject.toml` y `uv.lock` son la fuente oficial de dependencias, por acuerdo entre Cris y Jean. Jean prepara `.env.example`; Cris consume la configuración. | Nombres exactos de variables para BD, secreto de auth y URL de Ollama; valores de ejemplo no sensibles. |
 | Nombres | Cinco entidades compartidas con nombres `User`, `Grade`, `Subject`, `CurriculumContent`, `Planning`. | Convención de tablas, columnas, módulos y nombres públicos de esquemas. |
 | Modelos ORM | Cris publica los modelos mínimos antes del inicio del módulo de Alejandra. | Atributos, tipos, claves, relaciones, restricciones, nulabilidad y estrategia de inicialización. |
 | Pydantic | Se validarán solicitudes, respuestas y salida de IA. | Nombres y campos de esquemas de catálogo, autenticación, generación y planificación; reglas de serialización. |

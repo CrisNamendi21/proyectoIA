@@ -5,7 +5,7 @@ Este registro se cerrará con acuerdos explícitos del equipo. Las propuestas t�
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
 | Alta | Forma de crear las tablas y cargar los datos iniciales. La variable `DATABASE_URL`, el servicio `alfa-db`, el puerto `5432` y las credenciales locales de desarrollo ya están definidos. | Cris y Jean | Debe quedar reproducible antes de integrar los módulos. |
-| Alta | Campos, claves y relaciones mínimas de las cinco entidades; asociación real entre grado, asignatura y contenido. | Cris con Alejandra y referente del colegio | Evita cambiar modelos al iniciar catálogos. |
+| Media | Catálogo curricular real y reglas de negocio adicionales para grado, asignatura y contenido. Las claves y relaciones mínimas ya están implementadas. | Cris con Alejandra y referente del colegio | Define validaciones y datos iniciales sin bloquear el modelo base. |
 | Alta | Identificador de acceso y mecanismo de autenticación para cuentas precreadas; comportamiento de logout. | Cris y equipo | Define `User` y dependencia común de rutas. |
 | Alta | Rutas, métodos, nombres de esquemas y representación del usuario autenticado. | Los tres | Permite desarrollar módulos compatibles. |
 | Alta | Cuerpo JSONB de `Planning`, validación, vínculos curriculares y forma de editarlo. | Cris y Alejandra, con Jean para IA | Une persistencia y generación. |

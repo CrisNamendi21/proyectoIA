@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
@@ -21,12 +21,15 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 )
 def login(
     credentials: LoginRequest,
+    request: Request,
     session: Annotated[Session, Depends(get_db_session)],
 ) -> LoginResponse:
+    request.session.clear()
     user = authenticate_user(session, credentials.username, credentials.password)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Credenciales inválidas.",
         )
+    request.session["user_id"] = user.id
     return LoginResponse(id=user.id, username=user.username)

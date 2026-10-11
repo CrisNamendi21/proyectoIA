@@ -13,12 +13,13 @@ app/
   main.py                 aplicación y registro de routers — implementado, Cris
   api/
     health.py             comprobación de salud — implementado, Cris
-    auth.py               acceso mínimo aislado — implementado, Cris; sesión y registro pendientes
+    auth.py               acceso mínimo con sesión — implementado y registrado, Cris
+    deps.py               recuperación de usuario autenticado — implementado, Cris
     catalogs.py           catálogos — pendiente, Alejandra
     plans.py              planificaciones — pendiente, Alejandra
     generation.py         generación — pendiente, Jean
   core/
-    config.py             configuración de entorno — implementado, Cris
+    config.py             configuración de entorno y sesión — implementado, Cris
   db/
     base.py               DeclarativeBase — implementado, Cris
     session.py            engine, SessionLocal y dependencia — implementado, Cris
@@ -29,7 +30,7 @@ app/
     auth.py               búsqueda y verificación de cuentas — implementado, Cris
     ai/                   integración con Ollama — pendiente, Jean
     plans.py              lógica de planificaciones — pendiente, Alejandra
-tests/                    pruebas de hashing, carga y acceso mínimo implementadas; otras pendientes
+tests/                    pruebas de hashing, carga, acceso y sesión implementadas; otras pendientes
 ```
 
 Los routers traducen HTTP, validan mediante esquemas y llaman a servicios. Los servicios concentran la lógica de negocio y las integraciones. Los modelos representan persistencia y no ejecutan consultas ni commits por cuenta propia. Cris registra en `main.py` los routers que cada responsable exporte.
@@ -44,7 +45,7 @@ La aplicación crea un solo `engine` y un solo `sessionmaker`. `get_db_session()
 
 ## Configuración e infraestructura
 
-`app/core/config.py` obtiene `DATABASE_URL` del entorno o de un archivo local `.env`. Desde Windows el host es `localhost`; si FastAPI se incorpora a Compose, el host será `alfa-db`.
+`app/core/config.py` obtiene `DATABASE_URL`, `SESSION_SECRET_KEY` y `SESSION_COOKIE_SECURE` del entorno o de un archivo local `.env`. La clave de sesión es obligatoria y debe permanecer fuera de Git. Desde Windows el host de PostgreSQL es `localhost`; si FastAPI se incorpora a Compose, será `alfa-db`.
 
 Jean es responsable de versionar `compose.yaml`, `.env.example` y `Dockerfile`. Hasta que esos archivos se integren, la aplicación puede reproducir su entorno Python con `uv`, pero el repositorio no puede crear por sí solo el contenedor PostgreSQL en otra computadora.
 

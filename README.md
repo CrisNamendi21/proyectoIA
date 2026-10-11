@@ -2,19 +2,20 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 10 de octubre de 2026
+## Estado al 11 de octubre de 2026
 
-La base técnica del sábado está implementada y verificada:
+La base técnica y el acceso mínimo están implementados y verificados:
 
-- aplicación FastAPI con `GET /health`;
+- aplicación FastAPI con `GET /health` y `POST /auth/login`;
 - configuración mediante `DATABASE_URL`;
 - SQLAlchemy 2 síncrono con Psycopg 3;
 - una sesión de base de datos por petición;
 - modelos `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`;
 - creación explícita de tablas con `init_db()`;
-- dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`.
+- dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`;
+- sesión por cookie firmada y recuperación de usuario autenticado en una petición posterior.
 
-Autenticación, catálogos, generación con Ollama y operaciones de planificación todavía no tienen routers funcionales. La infraestructura versionada de Docker queda a cargo de Jean.
+El contrato de autenticación sigue siendo provisional hasta la revisión del equipo. Catálogos, generación con Ollama y operaciones de planificación todavía no tienen routers funcionales. La infraestructura versionada de Docker queda a cargo de Jean.
 
 ## Requisitos
 
@@ -39,9 +40,11 @@ Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. M
 
 ```dotenv
 DATABASE_URL=postgresql+psycopg://equipo_alfa:<CONTRASENA_LOCAL>@localhost:5432/colegio_alfa_db
+SESSION_SECRET_KEY=<CLAVE_ALEATORIA_DE_32_O_MAS_CARACTERES>
+SESSION_COOKIE_SECURE=false
 ```
 
-Sustituye `<CONTRASENA_LOCAL>` por el valor de tu entorno; no versiones `.env` ni compartas su contenido. Jean debe publicar valores de ejemplo no sensibles en `.env.example` junto con `compose.yaml`.
+Sustituye los marcadores por valores locales. `SESSION_SECRET_KEY` es obligatoria; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido. Jean debe publicar valores de ejemplo no sensibles en `.env.example` junto con `compose.yaml`.
 
 ## Crear las tablas
 
@@ -59,13 +62,13 @@ La inicialización usa `create_all()` y no reemplaza una estrategia posterior de
 uv run uvicorn app.main:app --reload
 ```
 
-Comprueba la ruta disponible:
+Comprueba la ruta de salud:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
-La respuesta esperada es `{"status":"ok"}`. También puede abrirse la documentación interactiva en `http://127.0.0.1:8000/docs`.
+La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` recibe JSON con `username` y `password`; si las credenciales son válidas responde con `id` y `username` y establece una cookie de sesión. Responde `401` para credenciales inválidas o cuentas inactivas y `422` para un cuerpo inválido. Puede consultarse el contrato provisional en `http://127.0.0.1:8000/docs`.
 
 ## Comprobar PostgreSQL
 
@@ -80,15 +83,17 @@ La salida esperada es `1`. Este comando, la creación de tablas y el arranque de
 ```text
 app/
   main.py               aplicación y registro de routers
-  api/health.py         comprobación de salud
-  core/config.py        configuración desde el entorno
+  api/                   salud, acceso y dependencia de usuario autenticado
+  core/                  configuración y hashing
   db/                   base declarativa, engine, sesiones e inicialización
   models/               cinco entidades SQLAlchemy compartidas
+  schemas/auth.py        entrada y salida del acceso
+  services/auth.py       búsqueda y verificación de cuentas
 docs/                   arquitectura, contratos y coordinación
-tests/                  reservado para pruebas por módulo
+tests/                  pruebas de hashing, carga, acceso y sesión
 ```
 
-Los módulos `schemas/` y `services/`, además de los routers de autenticación, catálogos, generación y planificaciones, se incorporarán durante las siguientes etapas.
+Los módulos de catálogos, generación y planificaciones se incorporarán durante las siguientes etapas. La dependencia `get_current_user` está preparada, pero su uso por otros routers requiere revisar el contrato con el equipo.
 
 ## Continuación del equipo
 

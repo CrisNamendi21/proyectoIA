@@ -1,9 +1,11 @@
 from collections.abc import Iterator
+import secrets
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import Select
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.auth import router
 from app.core.security import hash_password
@@ -42,6 +44,7 @@ def login_client() -> Iterator[tuple[TestClient, UserLookup]]:
         }
     )
     app = FastAPI()
+    app.add_middleware(SessionMiddleware, secret_key=secrets.token_urlsafe(32))
     app.include_router(router)
     app.dependency_overrides[get_db_session] = lambda: lookup
     with TestClient(app) as client:
@@ -59,6 +62,7 @@ def test_login_returns_only_public_identity(login_client: tuple[TestClient, User
     assert lookup.last_username == "Docente"
     assert "password_hash" not in response.text
     assert "clave-ficticia" not in response.text
+    assert "colegio_alfa_session" not in response.text
 
 
 @pytest.mark.parametrize(

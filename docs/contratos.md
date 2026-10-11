@@ -1,0 +1,38 @@
+# Contratos compartidos
+
+## Estado al 10 de octubre de 2026
+
+Esta página distingue lo implementado y comprobado de los acuerdos que todavía necesita el equipo. La existencia de una propuesta en este documento no la convierte en un contrato aprobado.
+
+| Área | Estado | Contrato actual | Pendiente |
+| --- | --- | --- | --- |
+| PostgreSQL | Implementado y comprobado localmente | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, contraseña local `alfa2026`, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Jean debe versionar Compose y definir la disponibilidad del servicio. |
+| Entorno | Implementado en la aplicación | `DATABASE_URL` se lee con `pydantic-settings`. En Windows usa `localhost`; dentro de Compose usará `alfa-db`. `pyproject.toml` y `uv.lock` son las fuentes oficiales de dependencias. | Jean debe añadir `.env.example` y `compose.yaml`; faltan variables de autenticación y Ollama. |
+| Nombres ORM | Confirmado e implementado | Clases `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`; tablas plurales en `snake_case`. | Coordinar cualquier cambio antes de modificar los modelos compartidos. |
+| Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `init_db()` crea las tablas. | Migraciones, política de eliminación y datos iniciales. |
+| Pydantic | Criterio acordado | Las solicitudes, respuestas y salidas de IA se validarán con esquemas Pydantic. | Nombres, campos y reglas de los esquemas de cada dominio. |
+| Endpoints | Solo salud implementada | `GET /health` responde `200` con `{"status":"ok"}`. | Acordar rutas, métodos, respuestas y errores de autenticación, catálogos, generación y planificaciones. |
+| Usuario autenticado | Pendiente | Habrá cuentas precreadas y cada docente accederá únicamente a sus planificaciones. | Mecanismo de autenticación, identidad entregada por la dependencia y comportamiento de logout. |
+| `Planning` | Base ORM implementada | Pertenece a un usuario; sus referencias curriculares son opcionales y `content` es JSONB obligatorio. | Esquema Pydantic del contenido, reglas de edición y validaciones de propiedad. |
+| Intercambio con IA | Pendiente | Ollama propondrá una planificación y su respuesta deberá validarse antes de guardarla. | Solicitud, respuesta, versión, campos mínimos y errores controlados. |
+
+Las credenciales mostradas son valores de desarrollo local y no deben reutilizarse en producción.
+
+## Sesión de base de datos
+
+- La aplicación crea un solo `engine` y un solo `SessionLocal`.
+- Cada petición que necesite persistencia recibe una nueva `Session` mediante `get_db_session()`.
+- La dependencia cierra la sesión al finalizar la petición.
+- Los servicios que escriban datos deben controlar `commit` y `rollback` explícitamente.
+- Los modelos no abren conexiones ni crean tablas al importarse.
+- La creación de tablas ocurre únicamente cuando se invoca `init_db()`.
+
+## Integración entre módulos
+
+1. Jean refleja el contrato de PostgreSQL en `.env.example` y `compose.yaml`.
+2. Cris conserva los modelos compartidos y registra en `app/main.py` los routers exportados por el equipo.
+3. Alejandra reutiliza las entidades existentes para catálogos y planificaciones.
+4. Los tres acuerdan identidad de usuario, contratos HTTP y estructura validada de `Planning.content` antes de integrar esos módulos.
+5. Los cambios posteriores de contratos se registran aquí y se coordinan con los responsables afectados.
+
+Las tareas concretas para continuar están en [instrucciones para el equipo](instrucciones-equipo.md).

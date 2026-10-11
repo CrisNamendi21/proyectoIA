@@ -6,7 +6,7 @@ Esta página distingue lo implementado y comprobado de los acuerdos que todavía
 
 | Área | Estado | Contrato actual | Pendiente |
 | --- | --- | --- | --- |
-| PostgreSQL | Implementado y comprobado localmente | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, contraseña local `alfa2026`, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Jean debe versionar Compose y definir la disponibilidad del servicio. |
+| PostgreSQL | Implementado y comprobado localmente | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, clave definida solo en el entorno local, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Jean debe versionar Compose y definir la disponibilidad del servicio. |
 | Entorno | Implementado en la aplicación | `DATABASE_URL` se lee con `pydantic-settings`. En Windows usa `localhost`; dentro de Compose usará `alfa-db`. `pyproject.toml` y `uv.lock` son las fuentes oficiales de dependencias. | Jean debe añadir `.env.example` y `compose.yaml`; faltan variables de autenticación y Ollama. |
 | Nombres ORM | Confirmado e implementado | Clases `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`; tablas plurales en `snake_case`. | Coordinar cualquier cambio antes de modificar los modelos compartidos. |
 | Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `init_db()` crea las tablas. | Migraciones, política de eliminación y datos iniciales. |
@@ -16,7 +16,7 @@ Esta página distingue lo implementado y comprobado de los acuerdos que todavía
 | `Planning` | Base ORM implementada | Pertenece a un usuario; sus referencias curriculares son opcionales y `content` es JSONB obligatorio. | Esquema Pydantic del contenido, reglas de edición y validaciones de propiedad. |
 | Intercambio con IA | Pendiente | Ollama propondrá una planificación y su respuesta deberá validarse antes de guardarla. | Solicitud, respuesta, versión, campos mínimos y errores controlados. |
 
-Las credenciales mostradas son valores de desarrollo local y no deben reutilizarse en producción.
+La clave de desarrollo se define solo en el entorno local, no se versiona y no debe reutilizarse en producción.
 
 ## Sesión de base de datos
 

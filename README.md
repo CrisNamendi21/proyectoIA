@@ -35,13 +35,13 @@ uv run python --version
 
 La segunda orden debe mostrar Python 3.12.x.
 
-Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. Mientras FastAPI se ejecute directamente en Windows, la configuración local acordada es:
+Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. Mientras FastAPI se ejecute directamente en Windows, usa la contraseña configurada en el contenedor PostgreSQL:
 
 ```dotenv
-DATABASE_URL=postgresql+psycopg://equipo_alfa:alfa2026@localhost:5432/colegio_alfa_db
+DATABASE_URL=postgresql+psycopg://equipo_alfa:<CONTRASENA_LOCAL>@localhost:5432/colegio_alfa_db
 ```
 
-Estas credenciales son únicamente para desarrollo local. Jean debe publicar valores de ejemplo coherentes en `.env.example` junto con `compose.yaml`.
+Sustituye `<CONTRASENA_LOCAL>` por el valor de tu entorno; no versiones `.env` ni compartas su contenido. Jean debe publicar valores de ejemplo no sensibles en `.env.example` junto con `compose.yaml`.
 
 ## Crear las tablas
 

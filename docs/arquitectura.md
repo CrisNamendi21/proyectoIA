@@ -13,7 +13,7 @@ app/
   main.py                 aplicación y registro de routers — implementado, Cris
   api/
     health.py             comprobación de salud — implementado, Cris
-    auth.py               autenticación — pendiente, Cris
+    auth.py               acceso mínimo aislado — implementado, Cris; sesión y registro pendientes
     catalogs.py           catálogos — pendiente, Alejandra
     plans.py              planificaciones — pendiente, Alejandra
     generation.py         generación — pendiente, Jean
@@ -24,11 +24,12 @@ app/
     session.py            engine, SessionLocal y dependencia — implementado, Cris
     init_db.py            creación explícita de tablas — implementado, Cris
   models/                 cinco entidades compartidas — implementado, Cris
-  schemas/                contratos Pydantic por dominio — pendiente
+  schemas/                autenticación implementada; otros dominios pendientes
   services/
+    auth.py               búsqueda y verificación de cuentas — implementado, Cris
     ai/                   integración con Ollama — pendiente, Jean
     plans.py              lógica de planificaciones — pendiente, Alejandra
-tests/                    pruebas por módulo — pendiente
+tests/                    pruebas de hashing, carga y acceso mínimo implementadas; otras pendientes
 ```
 
 Los routers traducen HTTP, validan mediante esquemas y llaman a servicios. Los servicios concentran la lógica de negocio y las integraciones. Los modelos representan persistencia y no ejecutan consultas ni commits por cuenta propia. Cris registra en `main.py` los routers que cada responsable exporte.

@@ -108,3 +108,4 @@ Jean y Alejandra deben leer [instrucciones de integración](docs/instrucciones-e
 - [Instrucciones para el equipo](docs/instrucciones-equipo.md)
 - [Flujo de trabajo](docs/flujo-trabajo.md)
 - [Decisiones pendientes](docs/decisiones-pendientes.md)
+- [Verificación de la etapa 5 del domingo](docs/verificacion-etapa-5-2026-10-11.md)

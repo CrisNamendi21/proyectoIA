@@ -36,6 +36,8 @@ La cookie firmada permite leer su contenido, aunque no modificarlo sin la clave;
 
 **Alcance del domingo:** implementar el acceso mínimo y comprobar que una segunda petición resuelve la misma identidad mediante la dependencia, sin publicar `/me` solo para esa comprobación. **Reservado para el lunes 12:** completar logout, `/me`, aplicar la dependencia a rutas protegidas y `tests/test_auth.py`. Mientras falte revisión del equipo, estos nombres y comportamientos siguen siendo propuestas.
 
+**Cierre de la etapa 5:** la [verificación reproducible](verificacion-etapa-5-2026-10-11.md) cubrió carga, acceso correcto y rechazado, identidad posterior y persistencia de hashes en PostgreSQL. Se detectó que una clave local de PostgreSQL publicada en el historial de Git sigue en uso; su rotación y la coordinación del contrato con Jean y Alejandra son pendientes prioritarios. No se registra aquí el valor de la clave.
+
 Referencias técnicas para evaluar la propuesta: [hashing con Argon2 en FastAPI](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) y [sesiones por cookie en Starlette](https://www.starlette.io/middleware/).
 
 ## Decisiones cerradas el 10 de octubre

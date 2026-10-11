@@ -6,8 +6,8 @@ El plan pide congelar contratos base el sábado 10 de octubre para permitir el t
 
 | Área | Confirmado por el plan o la instrucción del equipo | Acuerdo necesario antes de implementar |
 | --- | --- | --- |
-| PostgreSQL | Base relacional exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. | Nombre del servicio de Compose, puerto y credenciales de desarrollo no sensibles; creación inicial de tablas y datos. |
-| Entorno | La conexión se leerá desde `DATABASE_URL` con `pydantic-settings`. El formato es `postgresql+psycopg://usuario:contraseña@host:puerto/base_de_datos`. `pyproject.toml` y `uv.lock` son la fuente oficial de dependencias. | Jean debe reflejar el contrato en `.env.example` y definir el host interno de Compose. Faltan las variables de autenticación y Ollama. |
+| PostgreSQL | Base relacional exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Para desarrollo: usuario `equipo_alfa`, contraseña `alfa2026`, puerto `5432`, base `colegio_alfa_db` y servicio de Compose `alfa-db`. | Creación inicial de tablas y datos. Las credenciales son solo para desarrollo local. |
+| Entorno | La conexión se leerá desde `DATABASE_URL` con `pydantic-settings`. Desde Windows se usará `postgresql+psycopg://equipo_alfa:alfa2026@localhost:5432/colegio_alfa_db`; dentro de Compose el host será `alfa-db`. `pyproject.toml` y `uv.lock` son la fuente oficial de dependencias. | Jean debe reflejar el contrato en `.env.example` y `compose.yaml`. Faltan las variables de autenticación y Ollama. |
 | Nombres | Cinco entidades compartidas con nombres `User`, `Grade`, `Subject`, `CurriculumContent`, `Planning`. | Convención de tablas, columnas, módulos y nombres públicos de esquemas. |
 | Modelos ORM | Cris publica los modelos mínimos antes del inicio del módulo de Alejandra. | Atributos, tipos, claves, relaciones, restricciones, nulabilidad y estrategia de inicialización. |
 | Pydantic | Se validarán solicitudes, respuestas y salida de IA. | Nombres y campos de esquemas de catálogo, autenticación, generación y planificación; reglas de serialización. |

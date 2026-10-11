@@ -4,7 +4,7 @@ Este registro se cerrará con acuerdos explícitos del equipo. Las propuestas t�
 
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
-| Alta | Nombre del servicio PostgreSQL en Compose, puerto, credenciales de desarrollo no sensibles y forma de crear tablas/datos. La variable `DATABASE_URL` y el dialecto `postgresql+psycopg` ya están confirmados. | Cris y Jean | Bloquea la conexión reproducible y la prueba real contra PostgreSQL. |
+| Alta | Forma de crear las tablas y cargar los datos iniciales. La variable `DATABASE_URL`, el servicio `alfa-db`, el puerto `5432` y las credenciales locales de desarrollo ya están definidos. | Cris y Jean | Debe quedar reproducible antes de integrar los módulos. |
 | Alta | Campos, claves y relaciones mínimas de las cinco entidades; asociación real entre grado, asignatura y contenido. | Cris con Alejandra y referente del colegio | Evita cambiar modelos al iniciar catálogos. |
 | Alta | Identificador de acceso y mecanismo de autenticación para cuentas precreadas; comportamiento de logout. | Cris y equipo | Define `User` y dependencia común de rutas. |
 | Alta | Rutas, métodos, nombres de esquemas y representación del usuario autenticado. | Los tres | Permite desarrollar módulos compatibles. |

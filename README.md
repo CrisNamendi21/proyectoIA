@@ -1,44 +1,105 @@
 # Colegio Alfa
 
-Backend de un MVP universitario que ayudará a docentes a generar, revisar, editar, guardar y consultar planificaciones didácticas. El objetivo de la semana del **10 al 16 de octubre de 2026** es dejar funcional el flujo de cuenta precreada → selección curricular → propuesta con Ollama → edición → guardado → historial.
+Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado
+## Estado al 10 de octubre de 2026
 
-**Preparación documental.** Aún no hay aplicación, endpoints, modelos, configuración de Docker ni instrucciones de arranque verificadas. El trabajo de código comenzará después de acordar los contratos compartidos. Este repositorio no está listo para ejecutarse.
+La base técnica del sábado está implementada y verificada:
 
-## Stack acordado
+- aplicación FastAPI con `GET /health`;
+- configuración mediante `DATABASE_URL`;
+- SQLAlchemy 2 síncrono con Psycopg 3;
+- una sesión de base de datos por petición;
+- modelos `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`;
+- creación explícita de tablas con `init_db()`;
+- dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`.
 
-Python 3.12, FastAPI, Uvicorn, Pydantic, SQLAlchemy 2, PostgreSQL en Docker, Docker Compose, Ollama local, pytest y Git/GitHub. El uso previsto de JSONB permite conservar el contenido pedagógico flexible de una planificación en PostgreSQL. No se ha acordado añadir otras bases de datos o componentes de IA.
+Autenticación, catálogos, generación con Ollama y operaciones de planificación todavía no tienen routers funcionales. La infraestructura versionada de Docker queda a cargo de Jean.
 
-## Equipo
+## Requisitos
 
-| Integrante | Responsabilidad principal |
-| --- | --- |
-| Cris | Core de FastAPI, conexión y modelos de base de datos, autenticación, integración técnica. |
-| Jean | Infraestructura, dependencias, Docker Compose, servicio de IA con Ollama. |
-| Alejandra | Catálogos académicos, planificaciones, validaciones de propiedad y pruebas de esos módulos. |
+- `uv` instalado.
+- Docker Desktop activo.
+- PostgreSQL ejecutándose en un contenedor con el contrato descrito en [contratos](docs/contratos.md).
 
-Los contratos y archivos compartidos se coordinan entre los tres; la responsabilidad principal no impide revisión conjunta.
+El repositorio fija Python 3.12 mediante `.python-version`. No se usa `requirements.txt`.
 
-## Organización prevista
+## Preparar el entorno
 
-La estructura `app/` y `tests/` descrita abajo es **propuesta**, no existe todavía. La estructura actual contiene esta documentación y `.gitignore`.
+Instala exactamente las dependencias del lockfile:
+
+```powershell
+uv sync --locked
+uv run python --version
+```
+
+La segunda orden debe mostrar Python 3.12.x.
+
+Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. Mientras FastAPI se ejecute directamente en Windows, la configuración local acordada es:
+
+```dotenv
+DATABASE_URL=postgresql+psycopg://equipo_alfa:alfa2026@localhost:5432/colegio_alfa_db
+```
+
+Estas credenciales son únicamente para desarrollo local. Jean debe publicar valores de ejemplo coherentes en `.env.example` junto con `compose.yaml`.
+
+## Crear las tablas
+
+Con PostgreSQL disponible, ejecuta:
+
+```powershell
+uv run python -c "from app.db.init_db import init_db; init_db()"
+```
+
+La inicialización usa `create_all()` y no reemplaza una estrategia posterior de migraciones.
+
+## Iniciar la API
+
+```powershell
+uv run uvicorn app.main:app --reload
+```
+
+Comprueba la ruta disponible:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+La respuesta esperada es `{"status":"ok"}`. También puede abrirse la documentación interactiva en `http://127.0.0.1:8000/docs`.
+
+## Comprobar PostgreSQL
+
+```powershell
+uv run python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
+```
+
+La salida esperada es `1`. Este comando, la creación de tablas y el arranque de Uvicorn fueron comprobados el 10 de octubre de 2026.
+
+## Estructura
 
 ```text
-app/                 API, core, acceso a datos, modelos, esquemas y servicios (pendiente)
-tests/               Pruebas automatizadas (pendiente)
-docs/                Contexto y acuerdos de integración
-AGENTS.md            Instrucciones de trabajo para asistentes
-README.md            Entrada al proyecto
+app/
+  main.py               aplicación y registro de routers
+  api/health.py         comprobación de salud
+  core/config.py        configuración desde el entorno
+  db/                   base declarativa, engine, sesiones e inicialización
+  models/               cinco entidades SQLAlchemy compartidas
+docs/                   arquitectura, contratos y coordinación
+tests/                  reservado para pruebas por módulo
 ```
+
+Los módulos `schemas/` y `services/`, además de los routers de autenticación, catálogos, generación y planificaciones, se incorporarán durante las siguientes etapas.
+
+## Continuación del equipo
+
+Jean y Alejandra deben leer [instrucciones de integración](docs/instrucciones-equipo.md) antes de comenzar sus módulos. Cualquier cambio en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se coordina antes de implementarlo.
 
 ## Documentación
 
 - [Contexto y alcance](docs/contexto.md)
-- [Arquitectura propuesta](docs/arquitectura.md)
+- [Arquitectura](docs/arquitectura.md)
 - [Modelo de datos](docs/modelo-datos.md)
-- [Contratos por acordar](docs/contratos.md)
+- [Contratos compartidos](docs/contratos.md)
+- [Instrucciones para el equipo](docs/instrucciones-equipo.md)
 - [Flujo de trabajo](docs/flujo-trabajo.md)
 - [Decisiones pendientes](docs/decisiones-pendientes.md)
-
-Los comandos de instalación, pruebas y arranque se añadirán cuando la implementación permita verificarlos. Jean coordinará la configuración de Docker y las instrucciones técnicas de ejecución con el equipo.

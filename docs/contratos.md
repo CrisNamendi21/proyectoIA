@@ -1,34 +1,38 @@
 # Contratos compartidos
 
-## Estado
+## Estado al 10 de octubre de 2026
 
-El plan pide congelar contratos base el sábado 10 de octubre para permitir el trabajo paralelo. Esta página distingue los acuerdos confirmados de lo que todavía debe coordinarse. Los contratos documentados no implican por sí solos que el código ya esté implementado.
+Esta página distingue lo implementado y comprobado de los acuerdos que todavía necesita el equipo. La existencia de una propuesta en este documento no la convierte en un contrato aprobado.
 
-| Área | Confirmado por el plan o la instrucción del equipo | Acuerdo necesario antes de implementar |
-| --- | --- | --- |
-| PostgreSQL | Base relacional exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Para desarrollo: usuario `equipo_alfa`, contraseña `alfa2026`, puerto `5432`, base `colegio_alfa_db` y servicio de Compose `alfa-db`. | Creación inicial de tablas y datos. Las credenciales son solo para desarrollo local. |
-| Entorno | La conexión se leerá desde `DATABASE_URL` con `pydantic-settings`. Desde Windows se usará `postgresql+psycopg://equipo_alfa:alfa2026@localhost:5432/colegio_alfa_db`; dentro de Compose el host será `alfa-db`. `pyproject.toml` y `uv.lock` son la fuente oficial de dependencias. | Jean debe reflejar el contrato en `.env.example` y `compose.yaml`. Faltan las variables de autenticación y Ollama. |
-| Nombres | Cinco entidades compartidas con nombres `User`, `Grade`, `Subject`, `CurriculumContent`, `Planning`. | Convención de tablas, columnas, módulos y nombres públicos de esquemas. |
-| Modelos ORM | Están implementados `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`, con claves foráneas y relaciones bidireccionales. Las tablas se crean mediante `init_db()`. | Estrategia posterior de migraciones, política de eliminación y datos iniciales. |
-| Pydantic | Se validarán solicitudes, respuestas y salida de IA. | Nombres y campos de esquemas de catálogo, autenticación, generación y planificación; reglas de serialización. |
-| Endpoints | Login y protección; consulta de catálogos; generación; guardar, consultar, editar e historial. | Rutas, métodos, parámetros, filtros, respuestas y códigos de error. Ninguna ruta concreta está aprobada. |
-| Usuario autenticado | Cuentas precreadas y acceso personal a planificaciones. | Mecanismo de sesión o token, identificador que entregará la dependencia común y manejo de logout. |
-| `Planning` | Debe permitir guardar, editar y consultar; se recomienda JSONB para el contenido flexible. | Forma del cuerpo, referencias curriculares, propiedad, validación, fechas y política de cambios. |
-| Intercambio con IA | Ollama propone una planificación; la salida debe validarse y poder guardarse. | Esquema de entrada/salida, versión, campos mínimos, tratamiento de respuesta incompleta o inválida y errores. |
+| Área | Estado | Contrato actual | Pendiente |
+| --- | --- | --- | --- |
+| PostgreSQL | Implementado y comprobado localmente | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, contraseña local `alfa2026`, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Jean debe versionar Compose y definir la disponibilidad del servicio. |
+| Entorno | Implementado en la aplicación | `DATABASE_URL` se lee con `pydantic-settings`. En Windows usa `localhost`; dentro de Compose usará `alfa-db`. `pyproject.toml` y `uv.lock` son las fuentes oficiales de dependencias. | Jean debe añadir `.env.example` y `compose.yaml`; faltan variables de autenticación y Ollama. |
+| Nombres ORM | Confirmado e implementado | Clases `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`; tablas plurales en `snake_case`. | Coordinar cualquier cambio antes de modificar los modelos compartidos. |
+| Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `init_db()` crea las tablas. | Migraciones, política de eliminación y datos iniciales. |
+| Pydantic | Criterio acordado | Las solicitudes, respuestas y salidas de IA se validarán con esquemas Pydantic. | Nombres, campos y reglas de los esquemas de cada dominio. |
+| Endpoints | Solo salud implementada | `GET /health` responde `200` con `{"status":"ok"}`. | Acordar rutas, métodos, respuestas y errores de autenticación, catálogos, generación y planificaciones. |
+| Usuario autenticado | Pendiente | Habrá cuentas precreadas y cada docente accederá únicamente a sus planificaciones. | Mecanismo de autenticación, identidad entregada por la dependencia y comportamiento de logout. |
+| `Planning` | Base ORM implementada | Pertenece a un usuario; sus referencias curriculares son opcionales y `content` es JSONB obligatorio. | Esquema Pydantic del contenido, reglas de edición y validaciones de propiedad. |
+| Intercambio con IA | Pendiente | Ollama propondrá una planificación y su respuesta deberá validarse antes de guardarla. | Solicitud, respuesta, versión, campos mínimos y errores controlados. |
+
+Las credenciales mostradas son valores de desarrollo local y no deben reutilizarse en producción.
 
 ## Sesión de base de datos
 
-- Se creará un solo `engine` y un solo `sessionmaker` para la aplicación.
-- Cada petición que necesite persistencia recibirá una nueva `Session` mediante una dependencia de FastAPI con `yield`.
-- La sesión se cerrará siempre al terminar la petición y no se compartirá entre peticiones.
-- Los servicios u operaciones que escriban datos harán `commit` de forma explícita y ejecutarán `rollback` cuando corresponda.
-- No se abrirán conexiones ni se crearán tablas al importar los modelos.
+- La aplicación crea un solo `engine` y un solo `SessionLocal`.
+- Cada petición que necesite persistencia recibe una nueva `Session` mediante `get_db_session()`.
+- La dependencia cierra la sesión al finalizar la petición.
+- Los servicios que escriban datos deben controlar `commit` y `rollback` explícitamente.
+- Los modelos no abren conexiones ni crean tablas al importarse.
+- La creación de tablas ocurre únicamente cuando se invoca `init_db()`.
 
-## Secuencia de acuerdo propuesta
+## Integración entre módulos
 
-1. Cris y Jean acuerdan la configuración de PostgreSQL y variables de entorno; Jean la plasma en `.env.example` y Compose.
-2. Los tres revisan [modelo de datos](modelo-datos.md) y cierran las entidades mínimas; Cris publica modelos compartidos.
-3. Cris, Jean y Alejandra acuerdan identidad de usuario, contratos HTTP y estructura de `Planning` compatible con IA.
-4. Se registra cada decisión confirmada aquí o en [decisiones pendientes](decisiones-pendientes.md), con fecha y responsables. Un cambio posterior se coordina antes de editar modelos compartidos.
+1. Jean refleja el contrato de PostgreSQL en `.env.example` y `compose.yaml`.
+2. Cris conserva los modelos compartidos y registra en `app/main.py` los routers exportados por el equipo.
+3. Alejandra reutiliza las entidades existentes para catálogos y planificaciones.
+4. Los tres acuerdan identidad de usuario, contratos HTTP y estructura validada de `Planning.content` antes de integrar esos módulos.
+5. Los cambios posteriores de contratos se registran aquí y se coordinan con los responsables afectados.
 
-Los JSON de ejemplo y mocks serán útiles para pruebas independientes una vez acordado su formato; no se inventa uno en esta fase.
+Las tareas concretas para continuar están en [instrucciones para el equipo](instrucciones-equipo.md).

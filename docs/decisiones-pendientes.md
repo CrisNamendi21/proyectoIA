@@ -1,23 +1,39 @@
 # Decisiones pendientes
 
-Este registro se cerrará con acuerdos explícitos del equipo. Las propuestas técnicas no equivalen a requisitos oficiales. Prioridad **alta**: resolver el sábado 10 antes de que los módulos dependientes avancen.
+Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas no equivalen a requisitos oficiales.
+
+## Pendientes activos
 
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
-| Alta | Forma de crear las tablas y cargar los datos iniciales. La variable `DATABASE_URL`, el servicio `alfa-db`, el puerto `5432` y las credenciales locales de desarrollo ya están definidos. | Cris y Jean | Debe quedar reproducible antes de integrar los módulos. |
-| Media | Catálogo curricular real y reglas de negocio adicionales para grado, asignatura y contenido. Las claves y relaciones mínimas ya están implementadas. | Cris con Alejandra y referente del colegio | Define validaciones y datos iniciales sin bloquear el modelo base. |
-| Alta | Identificador de acceso y mecanismo de autenticación para cuentas precreadas; comportamiento de logout. | Cris y equipo | Define `User` y dependencia común de rutas. |
-| Alta | Rutas, métodos, nombres de esquemas y representación del usuario autenticado. | Los tres | Permite desarrollar módulos compatibles. |
-| Alta | Cuerpo JSONB de `Planning`, validación, vínculos curriculares y forma de editarlo. | Cris y Alejandra, con Jean para IA | Une persistencia y generación. |
-| Alta | Contrato de solicitud/respuesta de Ollama y errores previstos. | Jean con Cris y Alejandra | Permite mocks y guardado sin Ollama real. |
-| Media | Si “sección” tendrá catálogo, columna, campo flexible o quedará fuera del MVP. | Equipo y colegio | Grado y sección son conceptos distintos. |
-| Media | Ficha oficial, campos pedagógicos obligatorios y reglas de revisión docente. | Colegio y equipo | Las fotos son ejemplos, no especificación final. |
-| Media | Estrategia de pruebas con PostgreSQL en contenedor y datos de prueba. | Equipo | Evita pruebas que dependan de datos locales o Ollama real. |
+| Alta | Configuración reproducible de PostgreSQL mediante `compose.yaml` y `.env.example`. | Jean con Cris | Permite ejecutar la base en otra computadora y cerrar el criterio de portabilidad. |
+| Alta | Identificador de acceso, mecanismo de autenticación para cuentas precreadas y comportamiento de logout. | Cris y equipo | Define la dependencia de usuario autenticado y la protección de rutas. |
+| Alta | Rutas, métodos, esquemas Pydantic, respuestas y errores de los módulos funcionales. | Los tres | Evita implementar módulos incompatibles. |
+| Alta | Forma validada de `Planning.content`, vínculos curriculares y reglas de edición. | Cris y Alejandra, con Jean para IA | Une generación, persistencia y consulta. |
+| Alta | Contrato de solicitud y respuesta de Ollama, incluidos sus errores. | Jean con Cris y Alejandra | Permite crear mocks compatibles con el guardado. |
+| Media | Catálogo curricular real y reglas de grado, asignatura y contenido. | Alejandra con el equipo y el colegio | Define datos iniciales y validaciones del dominio. |
+| Media | Estrategia para cargar cuentas y catálogos iniciales. | Equipo | `init_db()` crea tablas, pero no carga datos. |
+| Media | Si “sección” será catálogo, columna, campo flexible o quedará fuera del MVP. | Equipo y colegio | Grado y sección son conceptos distintos. |
+| Media | Ficha oficial y campos pedagógicos obligatorios. | Colegio y equipo | Las fotografías son referencias, no la especificación final. |
+| Media | Estrategia de migraciones y política de eliminación entre entidades. | Equipo | `create_all()` sirve para la base inicial, pero no gestiona cambios de esquema. |
+| Media | Estrategia de pruebas con PostgreSQL y datos aislados. | Equipo | Evita depender de información local compartida entre pruebas. |
 
-## Diferencia de redacción detectada
+## Decisiones cerradas el 10 de octubre
 
-El plan ofrece como contingencia que “FastAPI + PostgreSQL funcionen localmente” si Docker consume tiempo. La instrucción expresa de esta sesión exige que **PostgreSQL se ejecute en Docker** y que no se instale directamente en el sistema operativo. Para el trabajo actual queda confirmado que “localmente” significa FastAPI ejecutado en Windows y conectado a PostgreSQL dentro de Docker. Si FastAPI se incorpora después a Compose, `DATABASE_URL` usará como host el nombre del servicio que defina Jean.
+- Python 3.12 fijado mediante `.python-version`.
+- `uv`, `pyproject.toml` y `uv.lock` como fuentes oficiales del entorno.
+- SQLAlchemy 2 síncrono con Psycopg 3.
+- PostgreSQL ejecutado en Docker y configurado mediante `DATABASE_URL`.
+- Una sesión independiente por petición.
+- Cinco modelos compartidos con nombres de tabla plurales en `snake_case`.
+- IDs enteros, relaciones explícitas, claves foráneas y fechas UTC.
+- JSONB para el contenido pedagógico flexible de `Planning`.
+- `init_db()` como inicialización explícita durante esta etapa, sin Alembic.
+
+## Diferencia de redacción resuelta
+
+El plan menciona como contingencia que “FastAPI + PostgreSQL funcionen localmente”. Para este proyecto significa FastAPI ejecutado en el equipo de desarrollo y PostgreSQL dentro de Docker; PostgreSQL no se instala directamente en Windows. Si FastAPI se incorpora a Compose, `DATABASE_URL` usará `alfa-db` como host.
 
 ## Fuentes aún no disponibles
 
-No se han proporcionado el documento de requerimientos funcionales, las entrevistas ni la ficha oficial validada. No se tomarán decisiones académicas definitivas a partir de las fotografías.
+No se han proporcionado el documento de requerimientos funcionales, las entrevistas ni una ficha oficial validada. No se tomarán decisiones académicas definitivas a partir de las fotografías.

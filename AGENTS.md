@@ -6,7 +6,7 @@ Construir un backend universitario comprensible para cuentas docentes precreadas
 
 ## Estado y estructura
 
-Al preparar esta guía, el repositorio solo contiene documentación y `.gitignore`; `app/` y `tests/` son estructuras previstas. Comprueba el estado real antes de actuar. La propuesta de módulos está en [arquitectura](docs/arquitectura.md). No describas una ruta o una prueba como funcional sin comprobarla. Los nombres de archivos por responsable son orientativos hasta crear el código.
+La base del sábado ya incluye la aplicación FastAPI, configuración, persistencia y cinco modelos compartidos; los módulos funcionales y sus pruebas siguen pendientes. Comprueba el estado real antes de actuar. La separación vigente está en [arquitectura](docs/arquitectura.md). No describas una ruta o una prueba como funcional sin comprobarla.
 
 ## Stack y separación
 
@@ -31,7 +31,7 @@ Antes de editar archivos de otro responsable o cambiar entidades/contratos compa
 
 ## Git y revisión
 
-`main` es estable y `develop` integra el trabajo. La preparación documental inicial se hizo en `develop` por instrucción expresa; el trabajo paralelo posterior usará ramas de feature desde `develop` y PR hacia `develop`, según [flujo de trabajo](docs/flujo-trabajo.md). Antes de editar, revisa rama, estado y archivos existentes. No sobrescribas cambios ajenos. En la fase documental inicial no hagas push, merge ni commit antes de la revisión solicitada; en trabajo posterior, cada PR debe decir qué se probó y cómo repetirlo.
+`main` es estable y `Cris-develop` integra el trabajo de esta etapa. El trabajo paralelo usará ramas de feature desde `Cris-develop` y PR hacia `Cris-develop`, según [flujo de trabajo](docs/flujo-trabajo.md). Antes de editar, revisa rama, estado y archivos existentes. No sobrescribas cambios ajenos. No hagas push ni merge sin la revisión solicitada; cada PR debe decir qué se probó y cómo repetirlo.
 
 ## Calidad y conducta de agentes
 

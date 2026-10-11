@@ -1,39 +1,56 @@
-# Arquitectura propuesta del backend
+# Arquitectura del backend
 
 ## Estado y criterios
 
-Este documento describe una organización para implementar el MVP; todavía no hay módulos de aplicación. El plan semanal confirma Python 3.12, FastAPI/Uvicorn, Pydantic, SQLAlchemy 2, PostgreSQL, Docker Compose, Git/GitHub, Ollama local y pytest. Se busca un proceso sencillo que pueda probarse sin requerir una respuesta real de IA en cada ejecución.
+La base técnica implementada el 10 de octubre de 2026 usa Python 3.12, FastAPI, SQLAlchemy 2 síncrono, Psycopg 3 y PostgreSQL en Docker. `pyproject.toml` declara las dependencias y `uv.lock` fija el entorno reproducible.
 
-## Organización propuesta
+La arquitectura separa transporte HTTP, validación, lógica de negocio, configuración y persistencia. Las piezas futuras deben respetar esta separación sin añadir capas que no ayuden al MVP.
+
+## Organización
 
 ```text
 app/
-  main.py                 creación de la aplicación y registro de routers — Cris
-  core/                   configuración y utilidades transversales — Cris
-  db/                     engine, sesiones e inicialización acordada — Cris
-  models/                 entidades SQLAlchemy compartidas — Cris
-  schemas/                contratos Pydantic por dominio — cada responsable
-  api/                    routers HTTP por dominio — cada responsable
+  main.py                 aplicación y registro de routers — implementado, Cris
+  api/
+    health.py             comprobación de salud — implementado, Cris
+    auth.py               autenticación — pendiente, Cris
+    catalogs.py           catálogos — pendiente, Alejandra
+    plans.py              planificaciones — pendiente, Alejandra
+    generation.py         generación — pendiente, Jean
+  core/
+    config.py             configuración de entorno — implementado, Cris
+  db/
+    base.py               DeclarativeBase — implementado, Cris
+    session.py            engine, SessionLocal y dependencia — implementado, Cris
+    init_db.py            creación explícita de tablas — implementado, Cris
+  models/                 cinco entidades compartidas — implementado, Cris
+  schemas/                contratos Pydantic por dominio — pendiente
   services/
-    ai/                   cliente y generación con Ollama — Jean
-    plans.py              operaciones de planificación — Alejandra
-tests/                    pruebas por módulo — cada responsable
+    ai/                   integración con Ollama — pendiente, Jean
+    plans.py              lógica de planificaciones — pendiente, Alejandra
+tests/                    pruebas por módulo — pendiente
 ```
 
-El router traduce HTTP y usa dependencias comunes; el servicio aplica la lógica; el modelo representa persistencia; el esquema valida entradas y salidas. `main.py` lo integra Cris. Los nombres concretos de módulos podrán ajustarse al acordar los contratos, sin crear una capa extra por anticipado.
+Los routers traducen HTTP, validan mediante esquemas y llaman a servicios. Los servicios concentran la lógica de negocio y las integraciones. Los modelos representan persistencia y no ejecutan consultas ni commits por cuenta propia. Cris registra en `main.py` los routers que cada responsable exporte.
 
-## Persistencia
+## Persistencia implementada
 
-PostgreSQL es la base principal confirmada porque usuarios, catálogos y propiedad de las planificaciones tienen relaciones que conviene expresar con claves y restricciones. La propuesta es guardar los vínculos estables como columnas relacionales y el cuerpo pedagógico editable de `Planning` en JSONB. Así se puede revisar la ficha oficial sin rediseñar inmediatamente todas las tablas. JSONB no sustituye las claves foráneas ni la validación Pydantic. Aún deben decidirse sus campos, versión y reglas de actualización.
+PostgreSQL conserva usuarios, catálogos y relaciones mediante columnas relacionales. `Planning.content` usa JSONB para el contenido pedagógico flexible; este campo no sustituye las claves foráneas ni la validación Pydantic que deberá aplicarse en los endpoints.
 
-PostgreSQL se ejecutará como contenedor Docker. Jean es responsable principal de `compose.yaml`, `Dockerfile` y `.env.example`; Cris coordina con él la URL de conexión y las variables necesarias. El equipo confirmó que `pyproject.toml` y `uv.lock`, administrados con `uv`, son la fuente oficial de dependencias y que cualquier cambio se coordina entre Cris y Jean. El arranque de FastAPI y la conexión real con PostgreSQL mediante `SELECT 1` ya fueron verificados.
+La aplicación crea un solo `engine` y un solo `sessionmaker`. `get_db_session()` entrega una sesión independiente por petición y la cierra al finalizar. Las operaciones futuras que escriban datos deben controlar `commit` y `rollback` de forma explícita.
 
-Para el MVP se usará SQLAlchemy 2 en modo síncrono con Psycopg 3. La aplicación leerá `DATABASE_URL` mediante `pydantic-settings` y creará una sesión independiente por petición. La dependencia de FastAPI cerrará la sesión al finalizar; las operaciones que escriban datos controlarán de forma explícita `commit` y `rollback`. El formato acordado para la conexión es `postgresql+psycopg://usuario:contraseña@host:puerto/base_de_datos`.
+`init_db()` importa los modelos y ejecuta `Base.metadata.create_all()`. El 10 de octubre se verificaron la conexión mediante `SELECT 1`, las cinco tablas y sus seis claves foráneas en PostgreSQL. Alembic no forma parte de esta etapa.
+
+## Configuración e infraestructura
+
+`app/core/config.py` obtiene `DATABASE_URL` del entorno o de un archivo local `.env`. Desde Windows el host es `localhost`; si FastAPI se incorpora a Compose, el host será `alfa-db`.
+
+Jean es responsable de versionar `compose.yaml`, `.env.example` y `Dockerfile`. Hasta que esos archivos se integren, la aplicación puede reproducir su entorno Python con `uv`, pero el repositorio no puede crear por sí solo el contenedor PostgreSQL en otra computadora.
 
 ## Generación y pruebas
 
-Jean encapsulará la llamada a Ollama en un servicio, con salida estructurada validada y errores controlados cuando haya timeout, JSON inválido o servicio no disponible. El contrato de salida debe ser compatible con el guardado de Alejandra. Los tests de generación usarán mocks; las pruebas de persistencia y autorización comprobarán acceso al propietario y entradas inválidas. El plan asigna integración completa al jueves 15 y estabilización al viernes 16.
+Jean encapsulará Ollama en `app/services/ai/`. Toda respuesta de IA debe validarse con Pydantic antes de utilizarse o persistirse y debe manejar timeout, JSON inválido y servicio no disponible. Las pruebas del servicio usarán mocks.
 
-## Riesgos de integración
+Alejandra implementará catálogos y planificaciones sin duplicar los modelos compartidos. Las pruebas de persistencia y autorización deberán comprobar propiedad, datos inválidos y errores reales del dominio.
 
-Los modelos compartidos deben estar disponibles antes de que Alejandra comience el domingo 11. También se necesitan acuerdos tempranos sobre identidad del usuario, URL de PostgreSQL, estructura de `Planning`, esquema de salida de IA y nombres de rutas/esquemas. El inventario está en [contratos](contratos.md) y las preguntas abiertas en [decisiones pendientes](decisiones-pendientes.md).
+Los contratos aún abiertos están en [decisiones pendientes](decisiones-pendientes.md), y los pasos de continuación están en [instrucciones para el equipo](instrucciones-equipo.md).

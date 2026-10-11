@@ -13,7 +13,7 @@ Al preparar esta guía, el repositorio solo contiene documentación y `.gitignor
 - Usa Python 3.12, FastAPI/Uvicorn, Pydantic, SQLAlchemy 2, PostgreSQL mediante Docker Compose, Ollama local y pytest.
 - Mantén routers HTTP en `app/api/`, validación y serialización en `app/schemas/`, lógica de negocio e integración externa en `app/services/`, configuración en `app/core/`, sesión y persistencia en `app/db/` y entidades ORM en `app/models/`.
 - En FastAPI, declara dependencias para sesión de BD y usuario autenticado; mantén los routers delgados y documenta las respuestas de error que realmente implemente cada endpoint.
-- Usa patrones de SQLAlchemy 2 (`Mapped`, `mapped_column`, sesiones controladas por petición) y relaciones explícitas. Evita consultas y commits escondidos en modelos o esquemas.
+- Usa SQLAlchemy 2 en modo síncrono con Psycopg 3. Aplica los patrones `Mapped` y `mapped_column`, una sesión independiente por petición y relaciones explícitas. Evita consultas y commits escondidos en modelos o esquemas.
 - Valida datos de entrada y la salida de IA con Pydantic. No confíes en JSON producido por Ollama sin validarlo.
 - PostgreSQL es la única base de datos del MVP. Ejecuta PostgreSQL en un contenedor, no lo instales directamente en el sistema operativo. Considera JSONB para contenido pedagógico flexible, manteniendo relaciones, usuarios y catálogos como datos relacionales.
 - Usa `uv` para gestionar Python y las dependencias. `pyproject.toml` declara las dependencias y `uv.lock` fija las versiones reproducibles; ambos son la fuente oficial acordada con Jean. No mantengas un `requirements.txt` paralelo.

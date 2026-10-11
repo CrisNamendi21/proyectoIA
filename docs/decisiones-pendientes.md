@@ -4,7 +4,7 @@ Este registro se cerrará con acuerdos explícitos del equipo. Las propuestas t�
 
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
-| Alta | Nombres de variables, URL de PostgreSQL dentro/fuera de Compose, credenciales de ejemplo y forma de crear tablas/datos. | Cris y Jean | Bloquea conexión reproducible y modelos. |
+| Alta | Nombre del servicio PostgreSQL en Compose, puerto, credenciales de desarrollo no sensibles y forma de crear tablas/datos. La variable `DATABASE_URL` y el dialecto `postgresql+psycopg` ya están confirmados. | Cris y Jean | Bloquea la conexión reproducible y la prueba real contra PostgreSQL. |
 | Alta | Campos, claves y relaciones mínimas de las cinco entidades; asociación real entre grado, asignatura y contenido. | Cris con Alejandra y referente del colegio | Evita cambiar modelos al iniciar catálogos. |
 | Alta | Identificador de acceso y mecanismo de autenticación para cuentas precreadas; comportamiento de logout. | Cris y equipo | Define `User` y dependencia común de rutas. |
 | Alta | Rutas, métodos, nombres de esquemas y representación del usuario autenticado. | Los tres | Permite desarrollar módulos compatibles. |
@@ -16,7 +16,7 @@ Este registro se cerrará con acuerdos explícitos del equipo. Las propuestas t�
 
 ## Diferencia de redacción detectada
 
-El plan ofrece como contingencia que “FastAPI + PostgreSQL funcionen localmente” si Docker consume tiempo. La instrucción expresa de esta sesión exige que **PostgreSQL se ejecute en Docker** y que no se instale directamente en el sistema operativo. Para el trabajo actual se interpreta “localmente” como FastAPI local conectado a PostgreSQL en contenedor; conviene confirmar esta interpretación con Jean antes de documentar comandos.
+El plan ofrece como contingencia que “FastAPI + PostgreSQL funcionen localmente” si Docker consume tiempo. La instrucción expresa de esta sesión exige que **PostgreSQL se ejecute en Docker** y que no se instale directamente en el sistema operativo. Para el trabajo actual queda confirmado que “localmente” significa FastAPI ejecutado en Windows y conectado a PostgreSQL dentro de Docker. Si FastAPI se incorpora después a Compose, `DATABASE_URL` usará como host el nombre del servicio que defina Jean.
 
 ## Fuentes aún no disponibles
 

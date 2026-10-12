@@ -1,6 +1,6 @@
 import pytest
 
-from app.services.ai.ai_service import AIPlanningService
+from app.services.ai.ai_service import AIPlanningService, DEFAULT_OLLAMA_TIMEOUT_SECONDS
 from app.services.ai.errors import GeneratedPlanValidationError
 from app.services.ai.prompt_builder import build_planning_prompt
 from app.services.ai.schemas import CurriculumContext, PlanningGenerationRequest
@@ -97,3 +97,7 @@ def test_prompt_instructs_spanish_json_output() -> None:
     assert "inicio" in prompt
     assert "desarrollo" in prompt
     assert "cierre" in prompt
+
+
+def test_default_timeout_allows_local_ollama_generation_window() -> None:
+    assert DEFAULT_OLLAMA_TIMEOUT_SECONDS == 120.0

@@ -13,7 +13,7 @@ from app.services.ai.schemas import PlanningGenerationRequest, TeachingPlanDraft
 
 DEFAULT_OLLAMA_BASE_URL = "http://host.docker.internal:11434"
 DEFAULT_OLLAMA_MODEL = "qwen2.5:3b"
-DEFAULT_OLLAMA_TIMEOUT_SECONDS = 30.0
+DEFAULT_OLLAMA_TIMEOUT_SECONDS = 120.0
 
 
 @dataclass(frozen=True)

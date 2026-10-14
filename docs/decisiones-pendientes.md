@@ -7,9 +7,9 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
 | Alta | Verificación del entorno desde un clon limpio con Docker y Ollama activos. | Jean con Cris | `compose.yaml` y `.env.example` ya existen; falta demostrar el arranque completo en otra instalación. |
-| Alta | Aprobación final del mecanismo de sesión y necesidad de revocación en servidor. | Cris y equipo | La implementación usa cookie firmada y logout local; una copia previa de la cookie sigue válida hasta expirar. |
-| Alta | Rutas, métodos, esquemas Pydantic, respuestas y errores de los módulos funcionales. | Los tres | Evita implementar módulos incompatibles. |
-| Alta | Forma validada de `Planning.content`, vínculos curriculares y reglas de edición. | Cris y Alejandra, con Jean para IA | Une generación, persistencia y consulta. |
+| Alta | Necesidad de revocación de sesión en servidor y protección adicional frente a solicitudes entre sitios. | Equipo | Cris confirmó para el MVP la cookie firmada y el logout local; una copia previa de la cookie sigue válida hasta expirar. |
+| Alta | Contratos todavía no cerrados de los módulos funcionales. | Los tres | Cris confirmó `/generation`, la sesión y las rutas actuales; falta la edición de planes y la conformidad de Alejandra sobre catálogos públicos. |
+| Alta | Aprobación compartida de `TeachingPlanDraft` como forma de `Planning.content`, vínculos curriculares y reglas de edición. | Alejandra con Cris y Jean | Cris confirmó su compatibilidad técnica; Alejandra debe aprobar el contrato del módulo de planes. |
 | Alta | Contrato de solicitud y respuesta de Ollama, incluidos sus errores. | Jean con Cris y Alejandra | Permite crear mocks compatibles con el guardado. |
 | Media | Catálogo curricular real y reglas de grado, asignatura y contenido. | Alejandra con el equipo y el colegio | Define datos iniciales y validaciones del dominio. |
 | Media | Datos curriculares y estrategia para cargarlos. | Equipo | Las cuentas tienen carga idempotente; todavía no existe un catálogo oficial que pueda versionarse o cargarse. |
@@ -34,7 +34,9 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 
 La cookie firmada permite leer su contenido, aunque no modificarlo sin la clave; por eso solo contiene el ID. El logout implementado borra la cookie del cliente, pero no invalida una copia obtenida antes: si el equipo requiere revocación inmediata en el servidor, habrá que elegir otro mecanismo. Los endpoints que escriben datos también requieren revisar la protección frente a solicitudes entre sitios al usar cookies.
 
-**Avance al miércoles 14:** `POST /auth/logout` y `GET /auth/me` están implementados; generación y planificaciones usan `get_current_user`, y sus routers están registrados en `main.py`. La suite comprueba el cierre de sesión, la identidad posterior, las rutas protegidas y la sanitización de errores de base de datos. Mientras falte revisión del equipo, la duración de sesión y la política de revocación siguen siendo propuestas.
+**Avance al miércoles 14:** `POST /auth/logout` y `GET /auth/me` están implementados; generación y planificaciones usan `get_current_user`, y sus routers están registrados en `main.py`. La suite comprueba el cierre de sesión, la identidad posterior, las rutas protegidas y la sanitización de errores de base de datos. Cris confirmó la cookie y su duración actual para el MVP; la política de revocación y los controles adicionales siguen pendientes del equipo.
+
+**Revisión de integración de Cris — 14 de octubre:** Cris confirmó `POST /generation` como ruta definitiva del MVP y aceptó el mecanismo de sesión actual para integrar generación y planes. También propuso mantener los catálogos como lectura pública durante el MVP; este punto necesita conformidad de Alejandra. La estructura completa de `TeachingPlanDraft` dentro de `Planning.content`, con los IDs curriculares separados, es técnicamente compatible y fue aceptada por Cris como base de integración, pero permanece provisional hasta la revisión de Alejandra. Las reglas detalladas y sus estados están en [contratos compartidos](contratos.md).
 
 **Cierre de la etapa 5:** la [verificación reproducible](verificacion-etapa-5-2026-10-11.md) cubrió carga, acceso correcto y rechazado, identidad posterior y persistencia de hashes en PostgreSQL. Se detectó que una clave local de PostgreSQL publicada en el historial de Git sigue en uso; su rotación y la coordinación del contrato con Jean y Alejandra son pendientes prioritarios. No se registra aquí el valor de la clave.
 

@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 
 from app.services.ai.ai_service import AIPlanningService, DEFAULT_OLLAMA_TIMEOUT_SECONDS
 from app.services.ai.errors import GeneratedPlanValidationError
@@ -101,3 +102,37 @@ def test_prompt_instructs_spanish_json_output() -> None:
 
 def test_default_timeout_allows_local_ollama_generation_window() -> None:
     assert DEFAULT_OLLAMA_TIMEOUT_SECONDS == 120.0
+
+
+def test_from_env_loads_dotenv_and_environment_takes_precedence(
+    monkeypatch: pytest.MonkeyPatch, tmp_path,
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    for key in ("OLLAMA_BASE_URL", "OLLAMA_MODEL", "OLLAMA_TIMEOUT_SECONDS"):
+        monkeypatch.delenv(key, raising=False)
+    (tmp_path / ".env").write_text(
+        "OLLAMA_BASE_URL=http://localhost:11434\n"
+        "OLLAMA_MODEL=qwen2.5:3b\nOLLAMA_TIMEOUT_SECONDS=75\n"
+        "DATABASE_URL=unused-test-value\n",
+        encoding="utf-8",
+    )
+    service = AIPlanningService.from_env()
+    assert service.client.base_url.rstrip("/") == "http://localhost:11434"
+    assert service.client.timeout_seconds == 75
+    monkeypatch.setenv("OLLAMA_TIMEOUT_SECONDS", "90")
+    assert AIPlanningService.from_env().client.timeout_seconds == 90
+
+
+@pytest.mark.parametrize("value", ["0", "-1", "nan", "inf", "invalid"])
+def test_from_env_rejects_invalid_timeout(monkeypatch, tmp_path, value) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("OLLAMA_TIMEOUT_SECONDS", value)
+    with pytest.raises(ValidationError):
+        AIPlanningService.from_env()
+
+
+def test_from_env_rejects_non_http_url(monkeypatch, tmp_path) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("OLLAMA_BASE_URL", "file:///private")
+    with pytest.raises(ValidationError):
+        AIPlanningService.from_env()

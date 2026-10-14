@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import http.client
 import json
+import math
 import socket
 import urllib.error
 import urllib.request
@@ -20,7 +22,15 @@ from app.services.ai.errors import (
 class OllamaClient:
     base_url: str
     model: str
-    timeout_seconds: float = 30.0
+    timeout_seconds: float = 120.0
+
+    def __post_init__(self) -> None:
+        self._validate_timeout(self.timeout_seconds)
+
+    @staticmethod
+    def _validate_timeout(value: float) -> None:
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError("El timeout de Ollama debe ser positivo y finito.")
 
     def generate_json(
         self,
@@ -29,6 +39,10 @@ class OllamaClient:
         model: str | None = None,
         timeout_seconds: float | None = None,
     ) -> dict[str, Any]:
+        effective_timeout = (
+            self.timeout_seconds if timeout_seconds is None else timeout_seconds
+        )
+        self._validate_timeout(effective_timeout)
         payload = {
             "model": model or self.model,
             "prompt": prompt,
@@ -45,12 +59,10 @@ class OllamaClient:
         try:
             with urllib.request.urlopen(
                 request,
-                timeout=timeout_seconds or self.timeout_seconds,
+                timeout=effective_timeout,
             ) as response:
                 response_body = response.read().decode("utf-8")
         except TimeoutError as exc:
-            raise OllamaTimeoutError("Ollama no respondió antes del timeout.") from exc
-        except socket.timeout as exc:
             raise OllamaTimeoutError("Ollama no respondió antes del timeout.") from exc
         except urllib.error.HTTPError as exc:
             raise OllamaConnectionError(
@@ -62,6 +74,14 @@ class OllamaClient:
                     "Ollama no respondió antes del timeout."
                 ) from exc
             raise OllamaConnectionError("No se pudo conectar con Ollama.") from exc
+        except UnicodeDecodeError as exc:
+            raise OllamaUnexpectedResponseError(
+                "Ollama devolvió una respuesta que no es UTF-8 válido."
+            ) from exc
+        except (OSError, http.client.HTTPException) as exc:
+            raise OllamaConnectionError(
+                "Se interrumpió la comunicación con Ollama."
+            ) from exc
 
         outer_payload = self._load_json_object(response_body, "respuesta HTTP de Ollama")
         response_text = outer_payload.get("response")

@@ -13,22 +13,24 @@ app/
   main.py                 aplicación y registro de routers — implementado, Cris
   api/
     health.py             comprobación de salud — implementado, Cris
-    auth.py               autenticación — pendiente, Cris
-    catalogs.py           catálogos — pendiente, Alejandra
-    plans.py              planificaciones — pendiente, Alejandra
-    generation.py         generación — pendiente, Jean
+    auth.py               login, logout y consulta de identidad — implementado, Cris
+    deps.py               recuperación de usuario autenticado — implementado, Cris
+    catalogs.py           consulta y filtros de catálogos — implementado, Alejandra
+    plans.py              guardar, listar y consultar planes — integrado con auth
+    generation.py         generación protegida — implementado, Jean
   core/
-    config.py             configuración de entorno — implementado, Cris
+    config.py             configuración de entorno y sesión — implementado, Cris
   db/
     base.py               DeclarativeBase — implementado, Cris
     session.py            engine, SessionLocal y dependencia — implementado, Cris
-    init_db.py            creación explícita de tablas — implementado, Cris
+    init_db.py            creación explícita y comando de inicialización — implementado, Cris
   models/                 cinco entidades compartidas — implementado, Cris
-  schemas/                contratos Pydantic por dominio — pendiente
+  schemas/                autenticación, catálogos, planes y salida de IA
   services/
-    ai/                   integración con Ollama — pendiente, Jean
-    plans.py              lógica de planificaciones — pendiente, Alejandra
-tests/                    pruebas por módulo — pendiente
+    auth.py               búsqueda y verificación de cuentas — implementado, Cris
+    ai/                   integración con Ollama — implementado, Jean
+    plans.py              guardado y consulta por propietario — implementado, Alejandra
+tests/                    pruebas de módulos y flujos integrados
 ```
 
 Los routers traducen HTTP, validan mediante esquemas y llaman a servicios. Los servicios concentran la lógica de negocio y las integraciones. Los modelos representan persistencia y no ejecutan consultas ni commits por cuenta propia. Cris registra en `main.py` los routers que cada responsable exporte.
@@ -43,14 +45,16 @@ La aplicación crea un solo `engine` y un solo `sessionmaker`. `get_db_session()
 
 ## Configuración e infraestructura
 
-`app/core/config.py` obtiene `DATABASE_URL` del entorno o de un archivo local `.env`. Desde Windows el host es `localhost`; si FastAPI se incorpora a Compose, el host será `alfa-db`.
+`app/core/config.py` obtiene `DATABASE_URL`, `SESSION_SECRET_KEY` y `SESSION_COOKIE_SECURE` del entorno o de un archivo local `.env`. La clave de sesión es obligatoria y debe permanecer fuera de Git. Desde Windows el host de PostgreSQL es `localhost`; si FastAPI se incorpora a Compose, será `alfa-db`.
 
 Jean es responsable de versionar `compose.yaml`, `.env.example` y `Dockerfile`. Hasta que esos archivos se integren, la aplicación puede reproducir su entorno Python con `uv`, pero el repositorio no puede crear por sí solo el contenedor PostgreSQL en otra computadora.
 
 ## Generación y pruebas
 
-Jean encapsulará Ollama en `app/services/ai/`. Toda respuesta de IA debe validarse con Pydantic antes de utilizarse o persistirse y debe manejar timeout, JSON inválido y servicio no disponible. Las pruebas del servicio usarán mocks.
+Jean encapsuló Ollama en `app/services/ai/`. La salida se valida con Pydantic y el endpoint controla timeout, JSON inválido y servicio no disponible. Las pruebas usan mocks para no depender de Ollama.
 
-Alejandra implementará catálogos y planificaciones sin duplicar los modelos compartidos. Las pruebas de persistencia y autorización deberán comprobar propiedad, datos inválidos y errores reales del dominio.
+Alejandra implementó la consulta de catálogos y el guardado, listado y detalle de planificaciones sin duplicar modelos. La edición de planes aún debe comprobar propiedad antes de incorporarse.
+
+`create_app()` registra todos los routers actuales. Generación y planificaciones dependen de `get_current_user`; catálogos permanece como consulta pública. Los errores no controlados de SQLAlchemy se traducen en una respuesta genérica `503` sin detalles de conexión.
 
 Los contratos aún abiertos están en [decisiones pendientes](decisiones-pendientes.md), y los pasos de continuación están en [instrucciones para el equipo](instrucciones-equipo.md).

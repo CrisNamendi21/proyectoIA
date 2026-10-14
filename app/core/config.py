@@ -1,11 +1,14 @@
 
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     database_url: str
+    session_secret_key: SecretStr | None = None
+    session_cookie_secure: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

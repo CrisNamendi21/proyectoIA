@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -32,9 +32,23 @@ def get_subjects(db: Session = Depends(get_db_session)):
 @router.get(
     "/contents",
     response_model=list[CurriculumContentRead],
+    responses={404: {"description": "Grado o asignatura no encontrados"}},
 )
-def get_contents(db: Session = Depends(get_db_session)):
+def get_contents(
+    db: Session = Depends(get_db_session),
+    grade_id: int | None = Query(default=None, gt=0),
+    subject_id: int | None = Query(default=None, gt=0),
+):
+    if grade_id is not None and db.get(Grade, grade_id) is None:
+        raise HTTPException(status_code=404, detail="Grado no encontrado")
+    if subject_id is not None and db.get(Subject, subject_id) is None:
+        raise HTTPException(status_code=404, detail="Asignatura no encontrada")
+
     statement = select(CurriculumContent).order_by(
         CurriculumContent.id
     )
+    if grade_id is not None:
+        statement = statement.where(CurriculumContent.grade_id == grade_id)
+    if subject_id is not None:
+        statement = statement.where(CurriculumContent.subject_id == subject_id)
     return db.scalars(statement).all()

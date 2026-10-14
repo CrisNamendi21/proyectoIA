@@ -1,4 +1,6 @@
 import socket
+import http.client
+import json
 import urllib.error
 import urllib.request
 
@@ -115,3 +117,51 @@ def test_ollama_client_rejects_missing_response_field(
 
     with pytest.raises(OllamaUnexpectedResponseError):
         client.generate_json("Responde JSON")
+
+
+@pytest.mark.parametrize("value", [0, -1, float("nan"), float("inf")])
+def test_ollama_client_rejects_invalid_timeout(value: float) -> None:
+    with pytest.raises(ValueError):
+        OllamaClient(base_url="http://ollama.local", model="test", timeout_seconds=value)
+    client = OllamaClient(base_url="http://ollama.local", model="test")
+    with pytest.raises(ValueError):
+        client.generate_json("JSON", timeout_seconds=value)
+
+
+def test_ollama_client_sends_model_override_and_timeout(monkeypatch) -> None:
+    def urlopen(request, timeout):
+        assert request.get_method() == "POST"
+        assert request.get_header("Content-type") == "application/json"
+        assert json.loads(request.data) == {
+            "model": "other", "prompt": "JSON", "stream": False, "format": "json"
+        }
+        assert timeout == 7
+        return FakeResponse('{"response": "{}"}')
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    client = OllamaClient(base_url="http://ollama.local", model="test")
+    assert client.generate_json("JSON", model="other", timeout_seconds=7) == {}
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (urllib.error.HTTPError("http://ollama.local", 404, "missing", {}, None), OllamaConnectionError),
+        (urllib.error.URLError(socket.timeout()), OllamaTimeoutError),
+        (ConnectionResetError(), OllamaConnectionError),
+        (http.client.IncompleteRead(b"partial"), OllamaConnectionError),
+        (UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid"), OllamaUnexpectedResponseError),
+    ],
+)
+def test_ollama_client_controls_transport_failures(monkeypatch, error, expected) -> None:
+    def urlopen(request, timeout):
+        raise error
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
+    with pytest.raises(expected):
+        OllamaClient(base_url="http://ollama.local", model="test").generate_json("JSON")
+
+
+@pytest.mark.parametrize("body", ['[]', '{"response": "[]"}', '{"response": ""}', '{"response": 7}'])
+def test_ollama_client_rejects_non_object_or_empty_response(monkeypatch, body) -> None:
+    monkeypatch.setattr(urllib.request, "urlopen", lambda request, timeout: FakeResponse(body))
+    with pytest.raises(OllamaUnexpectedResponseError):
+        OllamaClient(base_url="http://ollama.local", model="test").generate_json("JSON")

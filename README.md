@@ -16,8 +16,9 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - sesión por cookie firmada, consulta de identidad y cierre de sesión;
 - rutas de generación y planificaciones protegidas con `get_current_user`;
 - respuestas controladas para fallos de PostgreSQL y Ollama.
+- flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
 
-El contrato de autenticación sigue sujeto a la revisión final del equipo. Las planificaciones se pueden guardar, listar y consultar; la edición corresponde al siguiente avance de Alejandra. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar y consultar; la edición y la aprobación del formato pedagógico corresponden al siguiente avance de Alejandra. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
 
 ## Requisitos
 
@@ -119,3 +120,6 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Flujo de trabajo](docs/flujo-trabajo.md)
 - [Decisiones pendientes](docs/decisiones-pendientes.md)
 - [Verificación de la etapa 5 del domingo](docs/verificacion-etapa-5-2026-10-11.md)
+- [Infraestructura Docker y Ollama](docs/infraestructura-jean.md)
+- [Propuesta de integración entre IA y planificaciones](docs/integracion-ia-planificaciones-2026-10-14.md)
+- [Verificación del flujo integrado preparada por Jean](docs/verificacion-flujo-integrado-jean-2026-10-14.md)

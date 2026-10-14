@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.db.session import get_db_session
 from app.models.user import User
 from app.schemas.plans import PlanningCreate, PlanningRead
@@ -16,17 +17,15 @@ from app.services.plans import (
 )
 
 
-def get_planning_user() -> User:
-    """Cris must connect this dependency to get_current_user before integration."""
-    raise HTTPException(status_code=503, detail="Autenticación de planificaciones no integrada")
+# Conserva el nombre exportado para los tests aislados del módulo de Alejandra.
+get_planning_user = get_current_user
 
 
 router = APIRouter(prefix="/plans", tags=["plans"])
 Owner = Annotated[User, Depends(get_planning_user)]
 Database = Annotated[Session, Depends(get_db_session)]
 
-# Provisional HTTP mappings for review; no shared contract is changed here.
-auth_errors = {503: {"description": "Autenticación pendiente de integración"}}
+auth_errors = {401: {"description": "Sesión ausente, inválida o usuario inactivo"}}
 
 
 @router.post(

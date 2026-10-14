@@ -9,6 +9,7 @@ from pydantic import ValidationError
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
 
 @pytest.fixture
@@ -37,6 +38,7 @@ def plan_client(monkeypatch):
 
     db.flush.side_effect = flush
     app = FastAPI()
+    app.add_middleware(SessionMiddleware, secret_key="clave-ficticia-de-pruebas-32-caracteres")
     app.include_router(router)
     app.dependency_overrides[get_db_session] = lambda: db
     app.dependency_overrides[get_planning_user] = lambda: User(id=7, username="docente")
@@ -199,13 +201,13 @@ def test_transaction_failure(plan_client, operation):
 
 
 @pytest.mark.parametrize("method, path", [("post", "/plans"), ("get", "/plans"), ("get", "/plans/10")])
-def test_authentication_not_integrated(plan_client, method, path):
+def test_routes_require_authentication(plan_client, method, path):
     from app.api.plans import get_planning_user
     client, db, app = plan_client
     del app.dependency_overrides[get_planning_user]
     kwargs = {"json": {"content": {}}} if method == "post" else {}
     response = client.request(method, path, headers={"X-User-Id": "7"}, params={"user_id": 7}, **kwargs)
-    assert response.status_code == 503
+    assert response.status_code == 401
     db.get.assert_not_called()
     db.scalars.assert_not_called()
     db.add.assert_not_called()

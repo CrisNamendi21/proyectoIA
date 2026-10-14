@@ -23,6 +23,10 @@ class UserLookup:
         self.last_username = next(iter(parameters.values()))
         return self.users.get(self.last_username)
 
+    def get(self, model: type[User], user_id: int) -> User | None:
+        assert model is User
+        return next((user for user in self.users.values() if user.id == user_id), None)
+
 
 @pytest.fixture
 def login_client() -> Iterator[tuple[TestClient, UserLookup]]:
@@ -63,6 +67,35 @@ def test_login_returns_only_public_identity(login_client: tuple[TestClient, User
     assert "password_hash" not in response.text
     assert "clave-ficticia" not in response.text
     assert "colegio_alfa_session" not in response.text
+
+
+def test_me_and_logout_complete_the_session_flow(
+    login_client: tuple[TestClient, UserLookup],
+) -> None:
+    client, _ = login_client
+
+    assert client.get("/auth/me").status_code == 401
+    login = client.post(
+        "/auth/login", json={"username": "Docente", "password": "clave-ficticia"}
+    )
+    assert login.status_code == 200
+    assert client.get("/auth/me").json() == {"id": 7, "username": "Docente"}
+
+    logout = client.post("/auth/logout")
+    assert logout.status_code == 204
+    assert logout.content == b""
+    deleted_cookie = logout.headers["set-cookie"].lower()
+    assert "expires=thu, 01 jan 1970" in deleted_cookie
+    assert client.get("/auth/me").status_code == 401
+
+
+def test_logout_is_idempotent_without_a_session(
+    login_client: tuple[TestClient, UserLookup],
+) -> None:
+    client, _ = login_client
+
+    assert client.post("/auth/logout").status_code == 204
+    assert client.get("/auth/me").status_code == 401
 
 
 @pytest.mark.parametrize(

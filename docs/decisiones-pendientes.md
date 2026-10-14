@@ -16,7 +16,6 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 | Media | Si “sección” será catálogo, columna, campo flexible o quedará fuera del MVP. | Equipo y colegio | Grado y sección son conceptos distintos. |
 | Media | Ficha oficial y campos pedagógicos obligatorios. | Colegio y equipo | Las fotografías son referencias, no la especificación final. |
 | Media | Estrategia de migraciones y política de eliminación entre entidades. | Equipo | `create_all()` sirve para la base inicial, pero no gestiona cambios de esquema. |
-| Media | Estrategia de pruebas con PostgreSQL y datos aislados. | Equipo | Evita depender de información local compartida entre pruebas. |
 
 ## Propuesta provisional de autenticación — 11 de octubre de 2026
 
@@ -53,6 +52,12 @@ Referencias técnicas para evaluar la propuesta: [hashing con Argon2 en FastAPI]
 - IDs enteros, relaciones explícitas, claves foráneas y fechas UTC.
 - JSONB para el contenido pedagógico flexible de `Planning`.
 - `init_db()` como inicialización explícita durante esta etapa, sin Alembic.
+
+## Decisiones técnicas cerradas el 14 de octubre
+
+- Las pruebas integradas usan PostgreSQL real y una base desechable con UUID por caso; nunca vacían ni reutilizan la base de desarrollo.
+- El runner verifica el catálogo antes y después de la suite y falla si deja bases temporales nuevas.
+- Ollama se simula en la regresión principal; una inferencia real se ejecuta por separado y de forma explícita cuando el entorno dispone del modelo.
 
 ## Diferencia de redacción resuelta
 

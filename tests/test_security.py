@@ -17,3 +17,7 @@ def test_password_hash_uses_a_new_salt_each_time() -> None:
     password = "otra-clave-de-prueba"
 
     assert hash_password(password) != hash_password(password)
+
+
+def test_invalid_stored_hash_is_rejected() -> None:
+    assert not verify_password("clave-ficticia", "hash-danado")

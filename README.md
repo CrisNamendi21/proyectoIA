@@ -2,20 +2,26 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 11 de octubre de 2026
+## Estado al 15 de octubre de 2026
 
-La base técnica y el acceso mínimo están implementados y verificados:
+La base técnica y los módulos principales están integrados en `Cris-develop`:
 
-- aplicación FastAPI con `GET /health` y `POST /auth/login`;
+- aplicación FastAPI con salud, autenticación, catálogos, generación y planificaciones;
 - configuración mediante `DATABASE_URL`;
 - SQLAlchemy 2 síncrono con Psycopg 3;
 - una sesión de base de datos por petición;
 - modelos `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`;
 - creación explícita de tablas con `init_db()`;
 - dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`;
-- sesión por cookie firmada y recuperación de usuario autenticado en una petición posterior.
+- sesión por cookie firmada, consulta de identidad y cierre de sesión;
+- rutas de generación y planificaciones protegidas con `get_current_user`;
+- edición parcial de planificaciones con control de propietario y validación de referencias;
+- respuestas controladas para fallos de PostgreSQL y Ollama.
+- flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
 
-El contrato de autenticación sigue siendo provisional hasta la revisión del equipo. Catálogos, generación con Ollama y operaciones de planificación todavía no tienen routers funcionales. La infraestructura versionada de Docker queda a cargo de Jean.
+Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. La edición técnica publicada por Alejandra protege la propiedad, conserva los campos omitidos y vuelve a validar las referencias curriculares; la aprobación compartida del formato pedagógico continúa pendiente. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+
+El alcance técnico del viernes está cerrado, pero el producto completo conserva tareas posteriores. La instalación y prueba real de Ollama en el equipo de Cris, el merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
 ## Requisitos
 
@@ -36,30 +42,39 @@ uv run python --version
 
 La segunda orden debe mostrar Python 3.12.x.
 
-Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. Mientras FastAPI se ejecute directamente en Windows, usa la contraseña configurada en el contenedor PostgreSQL:
+Crea un archivo local `.env` en la raíz a partir de `.env.example`. Este archivo está ignorado por Git. Conserva todos los nombres de variables y reemplaza únicamente los marcadores de contraseña PostgreSQL y clave de sesión por valores privados:
 
-```dotenv
-DATABASE_URL=postgresql+psycopg://equipo_alfa:<CONTRASENA_LOCAL>@localhost:5432/colegio_alfa_db
-SESSION_SECRET_KEY=<CLAVE_ALEATORIA_DE_32_O_MAS_CARACTERES>
-SESSION_COOKIE_SECURE=false
+```powershell
+if (Test-Path .env) { throw ".env ya existe; revísalo sin sobrescribirlo." }
+Copy-Item .env.example .env
 ```
 
-Sustituye los marcadores por valores locales. `SESSION_SECRET_KEY` es obligatoria; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido. Jean debe publicar valores de ejemplo no sensibles en `.env.example` junto con `compose.yaml`.
+En la configuración de Compose, `DATABASE_URL` usa `alfa-db` como host. `SESSION_SECRET_KEY` es obligatoria y debe tener al menos 32 caracteres; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido.
+
+La ejecución nativa de FastAPI en Windows necesita cambiar el host de PostgreSQL a `localhost` únicamente para ese proceso. La [guía de infraestructura](docs/infraestructura-jean.md#variables-reales) contiene el procedimiento que reutiliza la contraseña en memoria sin imprimirla ni guardarla en el historial de la terminal.
 
 ## Crear las tablas
 
-Con PostgreSQL disponible, ejecuta:
+Con los servicios de Compose disponibles, ejecuta:
 
 ```powershell
-uv run python -c "from app.db.init_db import init_db; init_db()"
+docker compose exec -T backend python -m app.db.init_db
 ```
 
 La inicialización usa `create_all()` y no reemplaza una estrategia posterior de migraciones.
 
+Para crear una cuenta docente sin guardar la contraseña en archivos o en el historial de la terminal:
+
+```powershell
+docker compose exec backend python -m app.db.seed_users <nombre_de_usuario>
+```
+
+El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta ya existe, no modifica sus datos.
+
 ## Iniciar la API
 
 ```powershell
-uv run uvicorn app.main:app --reload
+docker compose up -d --build
 ```
 
 Comprueba la ruta de salud:
@@ -68,36 +83,36 @@ Comprueba la ruta de salud:
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
-La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` recibe JSON con `username` y `password`; si las credenciales son válidas responde con `id` y `username` y establece una cookie de sesión. Responde `401` para credenciales inválidas o cuentas inactivas y `422` para un cuerpo inválido. Puede consultarse el contrato provisional en `http://127.0.0.1:8000/docs`.
+La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesión, `GET /auth/me` devuelve la identidad pública y `POST /auth/logout` elimina la cookie. Las rutas `/generation` y `/plans` requieren una sesión válida; `PATCH /plans/{plan_id}` permite editar parcialmente solo una planificación del docente autenticado. El contrato HTTP disponible puede consultarse en `http://127.0.0.1:8000/docs`.
 
 ## Comprobar PostgreSQL
 
 ```powershell
-uv run python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
+docker compose exec -T backend python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
 ```
 
-La salida esperada es `1`. Este comando, la creación de tablas y el arranque de Uvicorn fueron comprobados el 10 de octubre de 2026.
+La salida esperada es `1`. La construcción de la imagen, el arranque de ambos servicios, la conexión y la existencia de las cinco tablas se comprobaron nuevamente durante la validación final.
 
 ## Estructura
 
 ```text
 app/
   main.py               aplicación y registro de routers
-  api/                   salud, acceso y dependencia de usuario autenticado
-  core/                  configuración y hashing
+  api/                   salud, autenticación, catálogos, generación y planes
+  core/                  configuración, hashing, validaciones y errores
   db/                   base declarativa, engine, sesiones e inicialización
   models/               cinco entidades SQLAlchemy compartidas
-  schemas/auth.py        entrada y salida del acceso
-  services/auth.py       búsqueda y verificación de cuentas
+  schemas/               contratos Pydantic de autenticación y planes
+  services/              autenticación, Ollama y persistencia de planes
 docs/                   arquitectura, contratos y coordinación
-tests/                  pruebas de hashing, carga, acceso y sesión
+tests/                  pruebas aisladas y pruebas opcionales con PostgreSQL
 ```
 
-Los módulos de catálogos, generación y planificaciones se incorporarán durante las siguientes etapas. La dependencia `get_current_user` está preparada, pero su uso por otros routers requiere revisar el contrato con el equipo.
+La aprobación del contrato pedagógico de edición y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
 
 ## Continuación del equipo
 
-Jean y Alejandra deben leer [instrucciones de integración](docs/instrucciones-equipo.md) antes de comenzar sus módulos. Cualquier cambio en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se coordina antes de implementarlo.
+Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se coordinan antes de implementarlos.
 
 ## Documentación
 
@@ -109,3 +124,8 @@ Jean y Alejandra deben leer [instrucciones de integración](docs/instrucciones-e
 - [Flujo de trabajo](docs/flujo-trabajo.md)
 - [Decisiones pendientes](docs/decisiones-pendientes.md)
 - [Verificación de la etapa 5 del domingo](docs/verificacion-etapa-5-2026-10-11.md)
+- [Infraestructura Docker y Ollama](docs/infraestructura-jean.md)
+- [Propuesta de integración entre IA y planificaciones](docs/integracion-ia-planificaciones-2026-10-14.md)
+- [Verificación del flujo integrado preparada por Jean](docs/verificacion-flujo-integrado-jean-2026-10-14.md)
+- [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
+- [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)

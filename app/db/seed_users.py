@@ -7,14 +7,8 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
+from app.core.validation import normalize_username
 from app.models import User
-
-
-def normalize_username(username: str) -> str:
-    normalized = username.strip()
-    if not normalized or len(normalized) > 50:
-        raise ValueError("El usuario debe tener entre 1 y 50 caracteres.")
-    return normalized
 
 
 def user_exists(session: Session, username: str) -> bool:

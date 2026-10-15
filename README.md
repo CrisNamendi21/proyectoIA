@@ -20,6 +20,8 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 
 Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar y consultar; la edición y la aprobación del formato pedagógico corresponden al siguiente avance de Alejandra. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
 
+El alcance técnico del viernes está cerrado, pero el producto completo conserva tareas posteriores. La instalación y prueba real de Ollama en el equipo de Cris, el merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
+
 ## Requisitos
 
 - `uv` instalado.
@@ -125,3 +127,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Propuesta de integración entre IA y planificaciones](docs/integracion-ia-planificaciones-2026-10-14.md)
 - [Verificación del flujo integrado preparada por Jean](docs/verificacion-flujo-integrado-jean-2026-10-14.md)
 - [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
+- [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)

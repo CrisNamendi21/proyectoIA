@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db.session import get_db_session
 from app.models.user import User
-from app.schemas.plans import PlanningCreate, PlanningRead
+from app.schemas.plans import PlanningCreate, PlanningRead, PlanningUpdate
 from app.services.plans import (
     PlanningCoherenceError,
     PlanningReferenceError,
@@ -14,6 +14,7 @@ from app.services.plans import (
     create_planning,
     get_planning,
     list_plannings,
+    update_planning,
 )
 
 
@@ -43,6 +44,29 @@ def post_plan(data: PlanningCreate, user: Owner, db: Database) -> PlanningRead:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except PlanningStorageError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return PlanningRead.model_validate(planning)
+
+
+@router.patch(
+    "/{plan_id}", response_model=PlanningRead, status_code=200,
+    responses={**auth_errors,
+               404: {"description": "Planificación o referencia curricular no encontrada"},
+               422: {"description": "Datos inválidos o referencias incompatibles"},
+               500: {"description": "Error al actualizar la planificación"}},
+)
+def patch_plan(
+    plan_id: Annotated[int, Path(gt=0)], data: PlanningUpdate, user: Owner, db: Database,
+) -> PlanningRead:
+    try:
+        planning = update_planning(db, plan_id, data, user.id)
+    except PlanningReferenceError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except PlanningCoherenceError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except PlanningStorageError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    if planning is None:
+        raise HTTPException(status_code=404, detail="Planificación no encontrada")
     return PlanningRead.model_validate(planning)
 
 

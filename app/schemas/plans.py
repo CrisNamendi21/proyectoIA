@@ -2,7 +2,7 @@ import math
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator, model_validator
 
 
 PositiveId = Annotated[int, Field(strict=True, gt=0)]
@@ -40,6 +40,17 @@ class PlanningCreate(BaseModel):
             raise ValueError("content debe ser un objeto JSON")
         validate_json_value(value)
         return value
+
+
+class PlanningUpdate(PlanningCreate):
+    # The default permits omission; the inherited validator rejects explicit null.
+    content: dict[str, JsonValue] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def require_changes(self) -> "PlanningUpdate":
+        if not self.model_fields_set:
+            raise ValueError("Debe proporcionar al menos un campo para actualizar")
+        return self
 
 
 class PlanningRead(PlanningCreate):

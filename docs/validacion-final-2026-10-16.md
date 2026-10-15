@@ -123,3 +123,41 @@ Al finalizar se detuvieron y eliminaron el contenedor temporal y su archivo de e
 ### Límite del resultado
 
 La inferencia real continúa **bloqueada**: Ollama no está instalado, su API no responde y `qwen2.5:3b` no puede verificarse en este equipo. El smoke test demuestra el transporte HTTP, PostgreSQL y el flujo posterior con un borrador manual; no demuestra una generación real. No se modificó código productivo para ocultar o evitar esta limitación.
+
+## Resultado del módulo 5 — revisión crítica y cierre técnico
+
+Línea base revisada: `d6a85af` en `Cris-develop`.
+
+Se inspeccionaron el arranque de FastAPI, la configuración, las dependencias de sesión y usuario autenticado, los routers de autenticación, generación y planificaciones, la validación de esquemas, la persistencia y el aislamiento por propietario. No se encontraron defectos críticos nuevos en el código productivo:
+
+- Una sesión ausente, inválida o asociada a un usuario inactivo produce 401 y no conserva una identidad utilizable.
+- La generación exige autenticación y convierte los fallos de Ollama en respuestas controladas.
+- El propietario de una planificación se obtiene de la sesión; no puede ser atribuido mediante el cuerpo de la petición.
+- El listado y el detalle filtran por propietario, y las escrituras aplican rollback ante errores de dominio o persistencia.
+- `Planning.content` valida que el contenido sea JSON finito antes de almacenarlo.
+
+### Corrección crítica aplicada al entorno local
+
+Se rotó la credencial activa de PostgreSQL que había aparecido en antecedentes del proyecto. La operación conservó el volumen y los datos existentes, actualizó únicamente el `.env` local ignorado por Git y no mostró ni versionó valores privados. Una conexión nueva con la credencial anterior fue rechazada y otra con la nueva devolvió `SELECT 1 = 1`.
+
+Después de recrear `alfa-db` y `backend`, PostgreSQL volvió a estado saludable, `/health` respondió `ok` y continuaron disponibles las cinco tablas: `users`, `grades`, `subjects`, `curriculum_contents` y `plannings`.
+
+### Regresión posterior a la corrección
+
+Comando: `uv run python tests/integration/run_snapshot.py --ref HEAD`.
+
+- **167 pruebas aprobadas**.
+- **1 prueba omitida**: inferencia con Ollama real.
+- **1 advertencia conocida** de Starlette/httpx.
+- Duración de pytest: **32.69 segundos**.
+- El runner informó `temporary_database_catalog_unchanged: true` y `new_leftover_databases: 0`.
+
+La revisión del árbol actualmente versionado no encontró claves privadas ni tokens reales. Las URLs con contraseña detectadas corresponden al valor demostrativo de `.env.example`, credenciales ficticias de pruebas y un texto de error usado para comprobar su saneamiento. `.env` continúa ignorado y no se versionaron archivos de base de datos, claves ni certificados.
+
+### Límites y pendientes comunicados
+
+- La credencial histórica puede permanecer en commits anteriores, aunque ya no permite acceder al PostgreSQL local revisado. Reescribir historia compartida requiere una decisión separada del equipo.
+- Ollama y `qwen2.5:3b` siguen ausentes; la inferencia real permanece sin verificar.
+- La edición de planificaciones y las decisiones contractuales pendientes de Alejandra no se implementaron durante esta revisión, porque constituirían funcionalidad nueva fuera del cierre técnico del viernes.
+
+Con la corrección local y la regresión completadas, no quedan bloqueos críticos demostrados en el flujo actualmente publicado. La limitación de Ollama y los contratos aún no acordados permanecen visibles para el equipo.

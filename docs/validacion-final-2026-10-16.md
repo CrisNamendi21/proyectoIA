@@ -101,3 +101,25 @@ La regresión integrada cubrió login, identidad, cuentas inactivas, catálogos,
 El catálogo de bases temporales se comprobó de forma independiente antes y después: comenzó y terminó con **0 bases de prueba**. El runner también informó `temporary_database_catalog_unchanged: true` y `new_leftover_databases: 0`. La API continuó respondiendo correctamente en `/health`.
 
 No se detectaron regresiones ni defectos críticos y no fue necesario modificar código productivo en este módulo. `backend` y `alfa-db` permanecen en ejecución para el módulo 4.
+
+## Resultado del módulo 4 — smoke test HTTP real
+
+Línea base: `a328149` en `Cris-develop`. Desde el módulo anterior no hubo cambios en `app/`; la imagen utilizada contiene el mismo código productivo.
+
+Se creó una base PostgreSQL temporal `colegio_alfa_e2e_test_<uuid>` y se levantó un segundo contenedor del backend en la red de Compose y en un puerto dinámico local. La base recibió exclusivamente dos docentes y referencias curriculares ficticias. Las credenciales del entorno y la clave de sesión pasaron mediante un archivo temporal eliminado inmediatamente después de iniciar el contenedor.
+
+Comprobaciones realizadas mediante HTTP real:
+
+- `/health`, login, `/auth/me` y catálogos: correctos.
+- `POST /generation`: **503 controlado**, porque no existe un servicio Ollama en el entorno.
+- El fallo de generación no se trató como una propuesta válida ni como una inferencia comprobada.
+- Para continuar verificando la parte independiente de IA se envió a `POST /plans` un borrador ficticio preparado manualmente y compatible con la forma de `TeachingPlanDraft`.
+- Guardado, listado, detalle y persistencia de `Planning.content`: correctos; quedó una fila únicamente dentro de la base temporal.
+- Un segundo docente obtuvo un historial vacío y respuesta 404 al solicitar el plan del primer docente.
+- Logout: 204; la consulta posterior de identidad devolvió 401.
+
+Al finalizar se detuvieron y eliminaron el contenedor temporal y su archivo de entorno, y se eliminó la base temporal. Una comprobación posterior encontró **0 contenedores E2E** y **0 bases E2E** residuales. El backend principal continuó respondiendo correctamente en `/health`.
+
+### Límite del resultado
+
+La inferencia real continúa **bloqueada**: Ollama no está instalado, su API no responde y `qwen2.5:3b` no puede verificarse en este equipo. El smoke test demuestra el transporte HTTP, PostgreSQL y el flujo posterior con un borrador manual; no demuestra una generación real. No se modificó código productivo para ocultar o evitar esta limitación.

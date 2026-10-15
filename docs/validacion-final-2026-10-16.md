@@ -192,3 +192,16 @@ La afirmación anterior conserva estos límites:
 - La credencial local expuesta anteriormente fue rotada, pero sanear el historial compartido requiere una decisión del equipo.
 
 La rama queda preparada para el merge; la integración efectiva en `main` se realizará únicamente cuando Cris la ordene y después de revisar este informe.
+
+## Actualización posterior al cierre — edición de planificaciones
+
+El 15 de octubre Alejandra publicó `63e2480` y Cris lo integró en `25099f3`. Esta actualización añade `PATCH /plans/{plan_id}` con edición parcial, filtro por propietario, validación del estado final, rollback y errores controlados.
+
+Resultados posteriores al merge:
+
+- Módulo de planes: **108 pruebas aprobadas** y **1 advertencia conocida**.
+- Suite normal: **195 pruebas aprobadas**, **4 omitidas** y **1 advertencia conocida**.
+- Suite integral con PostgreSQL real y Ollama simulado: **225 pruebas aprobadas**, **1 omitida**, **1 advertencia conocida** y **0 bases temporales nuevas**.
+- Smoke test adicional con PostgreSQL real: edición persistida, propietario conservado, otro docente rechazado y base desechable eliminada.
+
+La omisión continúa siendo la inferencia real con Ollama en el equipo de Cris. La integración técnica de edición no cierra por sí sola el formato pedagógico, su versión ni las reglas semánticas pendientes del equipo.

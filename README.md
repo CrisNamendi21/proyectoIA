@@ -2,7 +2,7 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 14 de octubre de 2026
+## Estado al 15 de octubre de 2026
 
 La base técnica y los módulos principales están integrados en `Cris-develop`:
 
@@ -15,10 +15,11 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`;
 - sesión por cookie firmada, consulta de identidad y cierre de sesión;
 - rutas de generación y planificaciones protegidas con `get_current_user`;
+- edición parcial de planificaciones con control de propietario y validación de referencias;
 - respuestas controladas para fallos de PostgreSQL y Ollama.
 - flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
 
-Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar y consultar; la edición y la aprobación del formato pedagógico corresponden al siguiente avance de Alejandra. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. La edición técnica publicada por Alejandra protege la propiedad, conserva los campos omitidos y vuelve a validar las referencias curriculares; la aprobación compartida del formato pedagógico continúa pendiente. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
 
 El alcance técnico del viernes está cerrado, pero el producto completo conserva tareas posteriores. La instalación y prueba real de Ollama en el equipo de Cris, el merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
@@ -82,7 +83,7 @@ Comprueba la ruta de salud:
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
-La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesión, `GET /auth/me` devuelve la identidad pública y `POST /auth/logout` elimina la cookie. Las rutas `/generation` y `/plans` requieren una sesión válida. El contrato HTTP disponible puede consultarse en `http://127.0.0.1:8000/docs`.
+La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesión, `GET /auth/me` devuelve la identidad pública y `POST /auth/logout` elimina la cookie. Las rutas `/generation` y `/plans` requieren una sesión válida; `PATCH /plans/{plan_id}` permite editar parcialmente solo una planificación del docente autenticado. El contrato HTTP disponible puede consultarse en `http://127.0.0.1:8000/docs`.
 
 ## Comprobar PostgreSQL
 
@@ -107,7 +108,7 @@ docs/                   arquitectura, contratos y coordinación
 tests/                  pruebas aisladas y pruebas opcionales con PostgreSQL
 ```
 
-La edición de planificaciones y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
+La aprobación del contrato pedagógico de edición y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
 
 ## Continuación del equipo
 

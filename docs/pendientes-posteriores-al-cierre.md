@@ -71,7 +71,7 @@ Criterio para marcarla como terminada:
 | Pendiente | Responsable de coordinar | Resultado esperado |
 | --- | --- | --- |
 | Aprobar el JSON completo de `TeachingPlanDraft` como `Planning.content`, su versión y sus reglas de edición. | Alejandra con Cris y Jean | Contrato compartido actualizado y pruebas acordadas. |
-| Implementar la edición de planificaciones. | Alejandra | Endpoint y pruebas de propiedad, validación y persistencia. |
+| Revisar y aprobar el contrato de la edición ya integrada. | Alejandra con Cris y Jean | Confirmación del formato pedagógico, versión, reglas semánticas y pruebas acordadas. |
 | Confirmar si los catálogos seguirán públicos o exigirán sesión. | Alejandra con Cris | Política HTTP explícita en contratos y pruebas. |
 | Decidir revocación de sesión en servidor y protección adicional para peticiones con cookie. | Cris con el equipo | Decisión documentada; implementación y pruebas si se exige. |
 | Proporcionar el catálogo curricular y las cuentas docentes reales por canales apropiados. | Equipo y colegio | Datos aprobados, estrategia de carga y ausencia de datos personales en Git. |
@@ -83,7 +83,7 @@ Criterio para marcarla como terminada:
 1. Preparar Ollama en el equipo de Cris y ejecutar la prueba real una vez.
 2. Registrar el resultado y revisar el diff final.
 3. Integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
-4. Cerrar los contratos con Alejandra y Jean antes de implementar edición o cambios de seguridad compartidos.
+4. Cerrar con Alejandra y Jean los contratos de la edición integrada antes de ampliarla o cambiar seguridad compartida.
 5. Planificar catálogo real, migraciones y cualquier trabajo posterior al MVP.
 
 ## Reglas para estas tareas

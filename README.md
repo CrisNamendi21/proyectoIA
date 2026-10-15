@@ -123,3 +123,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Infraestructura Docker y Ollama](docs/infraestructura-jean.md)
 - [Propuesta de integración entre IA y planificaciones](docs/integracion-ia-planificaciones-2026-10-14.md)
 - [Verificación del flujo integrado preparada por Jean](docs/verificacion-flujo-integrado-jean-2026-10-14.md)
+- [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)

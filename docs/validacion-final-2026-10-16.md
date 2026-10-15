@@ -70,3 +70,34 @@ Línea base: `5f69d1b` en `Cris-develop`.
 - La API de Ollama no está disponible y no hay una instalación local registrada. La inferencia real del módulo 4 continúa bloqueada hasta disponer de Ollama y `qwen2.5:3b`.
 
 El entorno queda con `backend` y `alfa-db` en ejecución para la regresión del módulo 3. La credencial se sincronizó para el entorno actual, pero su rotación por haber aparecido históricamente continúa pendiente; ningún valor privado se incorporó al repositorio.
+
+## Resultado del módulo 3 — regresión automatizada
+
+Commit probado: `5c759dd94b6f5bb0708f6c727ce9ca5d8bae38bf`.
+
+### Suite normal
+
+Comando: `uv run pytest -q`.
+
+- **137 pruebas aprobadas**.
+- **4 pruebas omitidas** porque requieren activación explícita de PostgreSQL o del flujo integrado.
+- **1 advertencia conocida** de Starlette sobre el uso de httpx en `TestClient`.
+- Duración: **9.55 segundos**.
+
+### Suite integrada
+
+Comando: `uv run python tests/integration/run_snapshot.py --ref HEAD`.
+
+- **167 pruebas aprobadas**.
+- **1 prueba omitida**: la inferencia con Ollama real.
+- **1 advertencia conocida** de Starlette/httpx.
+- Duración de pytest: **33.18 segundos**.
+- Código ejecutado desde un snapshot inmutable del commit indicado.
+- PostgreSQL real con una base desechable nueva por caso.
+- Ollama simulado únicamente en el transporte HTTP; FastAPI, autenticación, servicios, validación y persistencia permanecieron reales.
+
+La regresión integrada cubrió login, identidad, cuentas inactivas, catálogos, generación, errores de Ollama, revisión simulada del borrador, guardado JSONB, referencias inválidas, aislamiento de dos docentes, rollback de escritura, saneamiento de errores, historial, detalle y logout.
+
+El catálogo de bases temporales se comprobó de forma independiente antes y después: comenzó y terminó con **0 bases de prueba**. El runner también informó `temporary_database_catalog_unchanged: true` y `new_leftover_databases: 0`. La API continuó respondiendo correctamente en `/health`.
+
+No se detectaron regresiones ni defectos críticos y no fue necesario modificar código productivo en este módulo. `backend` y `alfa-db` permanecen en ejecución para el módulo 4.

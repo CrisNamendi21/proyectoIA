@@ -25,6 +25,7 @@ La evidencia previa más reciente corresponde al flujo integrado sobre `3810afe`
 3. Ejecutar una prueba real de extremo a extremo si Ollama y el modelo están disponibles.
 4. Corregir exclusivamente defectos críticos demostrados por las verificaciones.
 5. Repetir las comprobaciones afectadas y cerrar la revisión técnica.
+6. Auditar el estado final, comprobar la integración con `main` y preparar la entrega al equipo.
 
 Cada bloque termina con una verificación, un commit descriptivo y un push a `origin/Cris-develop`. El merge posterior hacia `main` requiere una instrucción expresa.
 
@@ -161,3 +162,33 @@ La revisión del árbol actualmente versionado no encontró claves privadas ni t
 - La edición de planificaciones y las decisiones contractuales pendientes de Alejandra no se implementaron durante esta revisión, porque constituirían funcionalidad nueva fuera del cierre técnico del viernes.
 
 Con la corrección local y la regresión completadas, no quedan bloqueos críticos demostrados en el flujo actualmente publicado. La limitación de Ollama y los contratos aún no acordados permanecen visibles para el equipo.
+
+## Resultado del módulo 6 — auditoría final y preparación de entrega
+
+Línea base revisada: `bfa2b81` en `Cris-develop`.
+
+Se actualizó la información remota antes de revisar el cierre. Los commits publicados en `origin/Alejandra-develop` y `origin/feature/ai-infra-jean` están contenidos en `Cris-develop`; no hay trabajo nuevo de esas dos ramas pendiente de integrar.
+
+`origin/main` y `Cris-develop` tienen historiales divergentes por los merges previos hacia `main`: antes de este cierre existían dos commits exclusivos de `main` y cinco commits de validación exclusivos de `Cris-develop`. Una integración virtual mediante `git merge-tree --write-tree origin/main Cris-develop` terminó con código 0 y **sin conflictos**. No se modificó `main` ni se ejecutó el merge real.
+
+### Comprobaciones finales
+
+- `uv lock --check`: correcto; el lockfile resolvió 41 paquetes sin cambios.
+- `docker compose config --quiet`: correcto.
+- PostgreSQL: contenedor activo y saludable.
+- Backend: contenedor activo y `/health` respondió `ok`.
+- OpenAPI publicó las diez rutas previstas: salud, login, logout, identidad, tres catálogos, generación, listado/creación de planes y detalle de plan.
+- `git diff --check origin/main...Cris-develop`: correcto.
+- No existen cambios en `app/`, `tests/`, dependencias, Docker o Compose desde la suite integrada de 167 pruebas registrada en el módulo 5; los commits posteriores contienen únicamente esta evidencia documental.
+
+### Estado de entrega
+
+El alcance actualmente publicado queda listo para revisión e integración de `Cris-develop` hacia `main`. La entrega demostrada incluye arranque reproducible, autenticación por sesión, catálogos, generación con transporte simulado, guardado e historial con aislamiento por docente, manejo controlado de fallos y PostgreSQL real.
+
+La afirmación anterior conserva estos límites:
+
+- La inferencia real no se considera aprobada en este equipo mientras falten Ollama y `qwen2.5:3b`.
+- La edición de planificaciones y los contratos que Alejandra aún debe confirmar continúan pendientes.
+- La credencial local expuesta anteriormente fue rotada, pero sanear el historial compartido requiere una decisión del equipo.
+
+La rama queda preparada para el merge; la integración efectiva en `main` se realizará únicamente cuando Cris la ordene y después de revisar este informe.

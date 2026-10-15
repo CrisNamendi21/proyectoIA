@@ -1,7 +1,8 @@
 # Infraestructura de Jean: Windows, Docker, PostgreSQL y Ollama
 
-Guía del 14 de octubre de 2026. Responsable: Jean. No cambia contratos compartidos.
-Describe los archivos existentes; la prueba definitiva desde un clon limpio se reserva para el viernes 16.
+Guía del 14 de octubre, actualizada el 15 de octubre de 2026. Responsable: Jean. No cambia contratos compartidos.
+La verificación desde un clon limpio se adelantó al jueves 15; sus resultados y límites están en
+[reproducibilidad desde clon limpio](reproducibilidad-clon-limpio-jean-2026-10-15.md).
 Los resultados actuales y el estado de integración están en [coordinación IA y planificaciones](integracion-ia-planificaciones-2026-10-14.md).
 
 ## Requisitos
@@ -262,3 +263,47 @@ README es documentación compartida mantenida por Cris según su historial; no s
 
 Cris debe comprobar esas referencias después de integrar estos documentos. Los docs antiguos de instrucciones siguen describiendo la base del sábado;
 el README remoto ya refleja la integración del miércoles. Esta guía no sustituye `docs/contratos.md`.
+
+## Repetir la verificación en un segundo clon del mismo equipo
+
+Un clon nuevo no debe compartir el proyecto Compose de desarrollo. Usar un nombre único `alfa-clean-<12 caracteres hexadecimales>`,
+una `.env` nueva, base `colegio_alfa_clean_<mismo sufijo>`, usuario `alfa_clean_user` y puertos libres alternativos.
+No copiar `.env`, `.venv` ni datos del primer repositorio. El Python y Ollama instalados son requisitos del equipo; el entorno virtual es nuevo.
+
+Conservar `compose.yaml` original. En el segundo clon puede usarse un override temporal, por ejemplo con 18080 y 15432 **si están libres**:
+
+```yaml
+services:
+  backend:
+    image: alfa-clean-<sufijo>-backend:verify
+    ports: !override
+      - "127.0.0.1:18080:8000"
+  alfa-db:
+    ports: !override
+      - "127.0.0.1:15432:5432"
+```
+
+Sustituir el sufijo y configurar `POSTGRES_PORT=15432` en la `.env` temporal; `DATABASE_URL` del backend conserva `alfa-db:5432`.
+`!override` reemplaza los mapeos originales en la versión Compose 5.5.1 probada; no añadir puertos sin comprobar el resultado de `config --quiet`.
+Seleccionar explícitamente el proyecto y ambos archivos en **todos** los comandos, incluyendo arranque, pruebas y parada:
+
+```powershell
+docker compose --project-name alfa-clean-<sufijo> -f compose.yaml -f compose.clean.override.yaml config --quiet
+docker compose --project-name alfa-clean-<sufijo> -f compose.yaml -f compose.clean.override.yaml build --no-cache backend
+docker compose --project-name alfa-clean-<sufijo> -f compose.yaml -f compose.clean.override.yaml up -d --wait
+```
+
+Los marcadores `<sufijo>` son nombres a sustituir, no comandos listos para ejecutar.
+Crear tablas con el módulo `app.db.init_db`. Para una comprobación automatizada, los docentes ficticios pueden crearse con la función existente
+`app.db.seed_users.create_user_if_missing`; su CLI interactiva sigue siendo el procedimiento para configurar cuentas manualmente.
+El catálogo de la prueba debe ser una fixture sintética dentro de la base temporal: no existe una carga oficial del colegio.
+
+Las pruebas ASGI existentes se ejecutan con el Python de la `.venv` nueva y la URL administrativa de la instancia temporal apuntando a `postgres`.
+El flujo HTTP se ejecuta con `tests/integration/run_docker_http.py --manifest <archivo_json_temporal>`.
+Ese manifiesto identifica `project`, `repo`, `backend_port`, `postgres_port`, `commit` y `compose` (lista de argumentos del comando anterior).
+El helper exige el prefijo de proyecto/base indicado, verifica etiquetas Docker, reutiliza los esquemas/entrada curricular del clon
+y ejecuta una sola generación HTTP real; no usa TestClient para enviar peticiones.
+
+Al finalizar, detener el proyecto temporal y comprobar sus etiquetas antes de eliminar sus contenedores, red o volumen.
+No eliminar ningún recurso que ya existiera antes de la prueba. Los pasos y la identidad del entorno verificado se resumen en el informe enlazado;
+los secretos y manifiestos privados no se publican.

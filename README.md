@@ -39,22 +39,23 @@ uv run python --version
 
 La segunda orden debe mostrar Python 3.12.x.
 
-Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. Mientras FastAPI se ejecute directamente en Windows, usa la contraseña configurada en el contenedor PostgreSQL:
+Crea un archivo local `.env` en la raíz a partir de `.env.example`. Este archivo está ignorado por Git. Conserva todos los nombres de variables y reemplaza únicamente los marcadores de contraseña PostgreSQL y clave de sesión por valores privados:
 
-```dotenv
-DATABASE_URL=postgresql+psycopg://equipo_alfa:<CONTRASENA_LOCAL>@localhost:5432/colegio_alfa_db
-SESSION_SECRET_KEY=<CLAVE_ALEATORIA_DE_32_O_MAS_CARACTERES>
-SESSION_COOKIE_SECURE=false
+```powershell
+if (Test-Path .env) { throw ".env ya existe; revísalo sin sobrescribirlo." }
+Copy-Item .env.example .env
 ```
 
-Sustituye los marcadores por valores locales. `SESSION_SECRET_KEY` es obligatoria; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido. `.env.example` documenta el conjunto completo de variables usadas por Compose y Ollama.
+En la configuración de Compose, `DATABASE_URL` usa `alfa-db` como host. `SESSION_SECRET_KEY` es obligatoria y debe tener al menos 32 caracteres; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido.
+
+La ejecución nativa de FastAPI en Windows necesita cambiar el host de PostgreSQL a `localhost` únicamente para ese proceso. La [guía de infraestructura](docs/infraestructura-jean.md#variables-reales) contiene el procedimiento que reutiliza la contraseña en memoria sin imprimirla ni guardarla en el historial de la terminal.
 
 ## Crear las tablas
 
-Con PostgreSQL disponible, ejecuta:
+Con los servicios de Compose disponibles, ejecuta:
 
 ```powershell
-uv run python -m app.db.init_db
+docker compose exec -T backend python -m app.db.init_db
 ```
 
 La inicialización usa `create_all()` y no reemplaza una estrategia posterior de migraciones.
@@ -62,7 +63,7 @@ La inicialización usa `create_all()` y no reemplaza una estrategia posterior de
 Para crear una cuenta docente sin guardar la contraseña en archivos o en el historial de la terminal:
 
 ```powershell
-uv run python -m app.db.seed_users <nombre_de_usuario>
+docker compose exec backend python -m app.db.seed_users <nombre_de_usuario>
 ```
 
 El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta ya existe, no modifica sus datos.
@@ -70,7 +71,7 @@ El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta
 ## Iniciar la API
 
 ```powershell
-uv run uvicorn app.main:app --reload
+docker compose up -d --build
 ```
 
 Comprueba la ruta de salud:
@@ -84,10 +85,10 @@ La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesi
 ## Comprobar PostgreSQL
 
 ```powershell
-uv run python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
+docker compose exec -T backend python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
 ```
 
-La salida esperada es `1`. Este comando, la creación de tablas y el arranque de Uvicorn fueron comprobados el 10 de octubre de 2026.
+La salida esperada es `1`. La construcción de la imagen, el arranque de ambos servicios, la conexión y la existencia de las cinco tablas se comprobaron nuevamente durante la validación final.
 
 ## Estructura
 

@@ -55,3 +55,18 @@ Estos pendientes se documentan y se prueban hasta donde permita el código publi
 ## Evidencia requerida por bloque
 
 Cada comprobación debe registrar el comando o procedimiento reproducible, el commit probado, el resultado exacto, las omisiones y cualquier limitación. Una prueba omitida, una dependencia ausente o un flujo simulado se describen como tales; no se presentan como verificaciones reales.
+
+## Resultado del módulo 2 — entorno reproducible
+
+Línea base: `5f69d1b` en `Cris-develop`.
+
+- uv `0.12.10`, Python local `3.12.14`, `uv lock --check` y `uv sync --locked`: correctos.
+- Docker Engine `29.8.0` y Docker Compose `5.5.1`: disponibles después de iniciar Docker Desktop.
+- El `.env` local se completó con las once variables de `.env.example` y se sincronizó con la configuración del contenedor existente. Se conservó la clave de sesión, no se mostró ningún valor y el archivo continúa ignorado por Git.
+- `docker compose config --quiet` y `docker compose up -d --build`: correctos. La imagen usa Python `3.12.15` y las versiones bloqueadas por `uv.lock`.
+- PostgreSQL inició en estado saludable conservando el volumen. `SELECT 1` devolvió `1` sobre `colegio_alfa_db`.
+- La base de desarrollo no tenía tablas. Se ejecutó explícitamente `python -m app.db.init_db` dentro del backend y quedaron disponibles `users`, `grades`, `subjects`, `curriculum_contents` y `plannings`. No se borraron datos ni volúmenes.
+- El backend respondió `{"status":"ok"}` en `/health`.
+- La API de Ollama no está disponible y no hay una instalación local registrada. La inferencia real del módulo 4 continúa bloqueada hasta disponer de Ollama y `qwen2.5:3b`.
+
+El entorno queda con `backend` y `alfa-db` en ejecución para la regresión del módulo 3. La credencial se sincronizó para el entorno actual, pero su rotación por haber aparecido históricamente continúa pendiente; ningún valor privado se incorporó al repositorio.

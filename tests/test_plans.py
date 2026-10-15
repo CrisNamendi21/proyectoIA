@@ -211,3 +211,184 @@ def test_routes_require_authentication(plan_client, method, path):
     db.get.assert_not_called()
     db.scalars.assert_not_called()
     db.add.assert_not_called()
+
+
+@pytest.fixture
+def update_client(plan_client, plan):
+    client, db, app = plan_client
+    db.scalars.return_value.one_or_none.return_value = plan
+    db.flush.side_effect = None
+    return client, db, app, plan
+
+
+def test_update_owner_replaces_content_and_preserves_identity(update_client):
+    client, db, _, plan = update_client
+    original = (plan.id, plan.user_id, plan.created_at)
+    old_content = plan.content
+    response = client.patch("/plans/10", json={"content": {"nuevo": [1, None]}})
+    assert response.status_code == 200
+    assert response.json()["content"] == {"nuevo": [1, None]}
+    assert old_content == {"actividades": ["Leer", {"duracion": 20}], "extra": None}
+    assert (plan.id, plan.user_id, plan.created_at) == original
+    assert where_sql(db) == "plannings.id = 10 AND plannings.user_id = 7"
+    db.flush.assert_called_once_with()
+    db.commit.assert_called_once_with()
+    db.rollback.assert_not_called()
+    db.add.assert_not_called()
+
+
+@pytest.mark.parametrize("plan_id", [10, 99], ids=["other-owner", "missing"])
+def test_update_missing_or_other_owner(update_client, plan_id):
+    client, db, _, plan = update_client
+    original = plan.content.copy()
+    db.scalars.return_value.one_or_none.return_value = None
+    response = client.patch(f"/plans/{plan_id}", json={"content": {"changed": True}})
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Planificación no encontrada"}
+    assert where_sql(db) == f"plannings.id = {plan_id} AND plannings.user_id = 7"
+    assert plan.content == original
+    db.get.assert_not_called()
+    db.flush.assert_not_called()
+    db.commit.assert_not_called()
+
+
+def test_update_partial_keeps_omitted_fields(update_client):
+    client, _, _, plan = update_client
+    content = plan.content.copy()
+    plan.subject_id = 1
+    response = client.patch("/plans/10", json={"grade_id": 1})
+    assert response.status_code == 200
+    assert response.json()["grade_id"] == 1
+    assert response.json()["subject_id"] == 1
+    assert response.json()["content"] == content
+
+
+@pytest.mark.parametrize("field", ["grade_id", "subject_id", "curriculum_content_id"])
+def test_update_clears_optional_reference(update_client, field):
+    client, _, _, plan = update_client
+    plan.grade_id = plan.subject_id = plan.curriculum_content_id = 1
+    response = client.patch("/plans/10", json={field: None})
+    assert response.status_code == 200
+    for name in ("grade_id", "subject_id", "curriculum_content_id"):
+        assert response.json()[name] == (None if name == field else 1)
+
+
+@pytest.mark.parametrize("body", [
+    {}, {"user_id": 8}, {"id": 20}, {"created_at": "2026-10-14"},
+    {"updated_at": "2026-10-14"}, {"unknown": 1},
+    {"content": {}, "user_id": 8},
+    *({"content": value} for value in (None, [], "{}", 1, True)),
+    *({field: value} for field in ("grade_id", "subject_id", "curriculum_content_id")
+      for value in (0, -1, "1", True, 1.5)),
+])
+def test_update_rejects_invalid_body(update_client, body):
+    client, db, _, _ = update_client
+    assert client.patch("/plans/10", json=body).status_code == 422
+    db.scalars.assert_not_called()
+    db.flush.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), (1, 2), {1, 2}, datetime.now(timezone.utc)])
+def test_update_schema_rejects_non_json_values(value):
+    from app.schemas.plans import PlanningUpdate
+    with pytest.raises(ValidationError):
+        PlanningUpdate(content={"value": value})
+
+
+def test_update_rejects_malformed_json(update_client):
+    client, db, _, _ = update_client
+    assert client.patch("/plans/10", content='{"content":', headers={"Content-Type": "application/json"}).status_code == 422
+    db.scalars.assert_not_called()
+
+
+@pytest.mark.parametrize("body,previous", [
+    ({"grade_id": 2}, {"curriculum_content_id": 1}),
+    ({"subject_id": 2}, {"curriculum_content_id": 1}),
+    ({"curriculum_content_id": 1}, {"grade_id": 2}),
+    ({"curriculum_content_id": 1}, {"subject_id": 2}),
+])
+def test_update_validates_combined_curriculum(update_client, body, previous):
+    client, db, _, plan = update_client
+    for field, value in previous.items():
+        setattr(plan, field, value)
+    original = vars(plan).copy()
+    assert client.patch("/plans/10", json=body).status_code == 422
+    assert vars(plan) == original
+    db.rollback.assert_called_once_with()
+    db.flush.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("field", ["grade_id", "subject_id", "curriculum_content_id"])
+def test_update_rejects_missing_reference(update_client, field):
+    client, db, _, _ = update_client
+    assert client.patch("/plans/10", json={field: 99}).status_code == 404
+    db.rollback.assert_called_once_with()
+    db.flush.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("operation", ["scalars", "get", "flush", "commit"])
+def test_update_storage_failure_rolls_back(update_client, operation):
+    client, db, _, _ = update_client
+    getattr(db, operation).side_effect = SQLAlchemyError("private database details")
+    response = client.patch("/plans/10", json={"grade_id": 1})
+    assert response.status_code == 500
+    assert response.json() == {"detail": "No se pudo actualizar la planificación"}
+    db.rollback.assert_called_once_with()
+    if operation != "commit":
+        db.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("state", ["absent", "inactive"])
+def test_update_requires_active_authenticated_user(update_client, state):
+    import base64
+    import json
+    from itsdangerous import TimestampSigner
+    from app.api.plans import get_planning_user
+    from app.models import User
+
+    client, db, app, _ = update_client
+    del app.dependency_overrides[get_planning_user]
+    if state == "inactive":
+        payload = base64.b64encode(json.dumps({"user_id": 7}).encode())
+        cookie = TimestampSigner("clave-ficticia-de-pruebas-32-caracteres").sign(payload).decode()
+        client.cookies.set("session", cookie)
+        db.get.side_effect = lambda model, identifier: User(id=7, username="docente", is_active=False)
+    response = client.patch("/plans/10", json={"content": {}}, headers={"X-User-Id": "7"})
+    assert response.status_code == 401
+    if state == "inactive":
+        db.get.assert_called_once_with(User, 7)
+    else:
+        db.get.assert_not_called()
+    db.scalars.assert_not_called()
+    db.flush.assert_not_called()
+    db.commit.assert_not_called()
+
+
+@pytest.mark.parametrize("plan_id", ["0", "-1", "abc"])
+def test_update_invalid_path(update_client, plan_id):
+    client, db, _, _ = update_client
+    assert client.patch(f"/plans/{plan_id}", json={"content": {}}).status_code == 422
+    db.scalars.assert_not_called()
+
+
+def test_update_preserves_complete_teaching_draft(update_client):
+    from app.services.ai.schemas import TeachingPlanDraft
+    client, _, _, _ = update_client
+    draft = TeachingPlanDraft(
+        title="Fracciones", grade="Quinto", subject="Matemática",
+        curriculum_content="Fracciones", learning_objective="Comparar fracciones",
+        activities=[{"stage": stage, "description": "Comparar dibujos", "minutes": 15,
+                     "resources": ["tarjetas"]} for stage in ("inicio", "desarrollo", "cierre")],
+        assessment={"criteria": ["Compara fracciones"], "evidence": "Ejercicios"},
+        materials=["pizarra"], teacher_notes=["Revisado"],
+    ).model_dump(mode="json")
+    assert client.patch("/plans/10", json={"content": draft}).json()["content"] == draft
+
+
+def test_update_schema_distinguishes_omission_and_null():
+    from app.schemas.plans import PlanningUpdate
+    assert PlanningUpdate(grade_id=None).model_dump(exclude_unset=True) == {"grade_id": None}
+    assert PlanningUpdate(content={}).model_dump(exclude_unset=True) == {"content": {}}

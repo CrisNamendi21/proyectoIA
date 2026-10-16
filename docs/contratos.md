@@ -52,6 +52,8 @@ La suite del módulo de planes aprobó **108 pruebas**; la suite normal aprobó 
 
 Esta integración confirma el comportamiento técnico de edición. El formato pedagógico definitivo de `Planning.content`, su versión, las reglas de coherencia semántica y la política pública de catálogos todavía requieren acuerdo explícito; la implementación por sí sola no los convierte en contratos aprobados.
 
+Alejandra añadió posteriormente una prueba PostgreSQL específica en `d16531a`. Cris la incorporó al runner en `1c6263f`; la regresión pasó a **226 pruebas aprobadas, 1 omitida y 0 bases temporales residuales**. La nueva evidencia refuerza persistencia y propiedad de `PATCH`, sin cerrar las decisiones pedagógicas pendientes.
+
 ## Sesión de base de datos
 
 - La aplicación crea un solo `engine` y un solo `SessionLocal`.

@@ -83,3 +83,11 @@ El archivo `tests/integration/run_snapshot.py` mostrado ese día copia explícit
 **Pendiente fuera del cierre individual:** merge definitivo en `main`, incorporación de la nueva prueba a la ejecución integrada y prueba con Ollama real (no disponible en el PowerShell local al consultar `ollama list`).
 
 **Seguridad:** No guardar contraseñas, secretos de sesión ni URL de conexión con credenciales en este documento o en el repositorio. Mantener las pruebas contra PostgreSQL temporal, no contra la base habitual `colegio_alfa`.
+
+## 7. Integración realizada por Cris
+
+Cris integró `d16531a` y `03ff006` en `Cris-develop` mediante `1c6263f`. El runner ahora copia explícitamente `test_patch_persistence_alejandra.py` al snapshot. La prueba también incorpora una guarda para omitirse en la suite normal cuando el entorno PostgreSQL desechable no está activado.
+
+La suite completa dentro del entorno oficial Python 3.12 aprobó **226 pruebas**, omitió únicamente Ollama real y mostró dos advertencias: la advertencia conocida de Starlette/httpx y una advertencia de caché causada por montar el repositorio como solo lectura durante esta comprobación. El catálogo posterior contenía **0 bases temporales**. Una ejecución separada del runner informó igualmente **226 aprobadas, 1 omitida, 1 advertencia** y `new_leftover_databases: 0`.
+
+La incorporación a `main` y la inferencia real con Ollama continúan pendientes.

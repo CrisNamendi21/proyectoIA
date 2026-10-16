@@ -205,3 +205,14 @@ Resultados posteriores al merge:
 - Smoke test adicional con PostgreSQL real: edición persistida, propietario conservado, otro docente rechazado y base desechable eliminada.
 
 La omisión continúa siendo la inferencia real con Ollama en el equipo de Cris. La integración técnica de edición no cierra por sí sola el formato pedagógico, su versión ni las reglas semánticas pendientes del equipo.
+
+### Incorporación de la prueba PostgreSQL de Alejandra
+
+Alejandra publicó después `d16531a` y `03ff006`. Cris los integró en `1c6263f` y agregó `test_patch_persistence_alejandra.py` a la lista explícita de archivos del runner.
+
+- Suite normal: **195 aprobadas**, **5 omitidas** y **1 advertencia conocida**. La quinta omisión es la prueba PostgreSQL nueva cuando el runner no está activado.
+- Runner integrado: **226 aprobadas**, **1 omitida**, **1 advertencia conocida** y `new_leftover_databases: 0`.
+- Comprobación adicional en el contenedor oficial Python 3.12: **226 aprobadas**, **1 omitida** y **2 advertencias**. La advertencia adicional fue únicamente el intento de escribir la caché de pytest sobre un montaje de solo lectura.
+- Consulta posterior del catálogo: **0 bases temporales** con los patrones de prueba del proyecto.
+
+Windows bloqueó el ejecutable Python 3.12 administrado por uv mediante Control de aplicaciones durante esta sesión. La comprobación oficial se trasladó al contenedor Python 3.12 sin cambiar dependencias; Cris debe restablecer la ejecución local antes de depender nuevamente de `uv run` en Windows.

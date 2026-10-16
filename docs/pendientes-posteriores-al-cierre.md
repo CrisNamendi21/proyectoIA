@@ -10,7 +10,17 @@ Esto no significa que el producto completo esté cerrado. Las tareas siguientes 
 
 ## Tareas que Cris hará después
 
-### 1. Activar Ollama y validar una generación real en su equipo — prioridad alta
+### 1. Restablecer Python 3.12 local — prioridad alta
+
+Windows bloqueó `.venv\Scripts\python.exe` mediante una directiva de Control de aplicaciones después de haberlo ejecutado correctamente en sesiones anteriores. Las últimas pruebas se completaron en el contenedor oficial Python 3.12, pero el flujo local con `uv run` debe recuperarse.
+
+Pasos manuales:
+
+1. Reiniciar la terminal y comprobar `uv run python --version`.
+2. Si continúa el mensaje de bloqueo, revisar la notificación de Seguridad de Windows o solicitar al administrador que autorice o repare el intérprete administrado por uv. Mantener activa la protección; no deshabilitarla para ejecutar el proyecto.
+3. Confirmar que `uv run python --version` muestra Python 3.12.x y repetir `uv run pytest -q`.
+
+### 2. Activar Ollama y validar una generación real en su equipo — prioridad alta
 
 Jean ya registró una prueba real en su entorno. En el equipo de Cris, Ollama y el modelo continúan ausentes, por lo que esa evidencia todavía no se ha reproducido localmente.
 
@@ -46,7 +56,7 @@ Criterio para marcarla como terminada:
 - El runner confirma que no dejó bases temporales.
 - El resultado y la duración se agregan a la validación final sin guardar prompts privados ni credenciales.
 
-### 2. Integrar `Cris-develop` en `main` — prioridad alta
+### 3. Integrar `Cris-develop` en `main` — prioridad alta
 
 La simulación del módulo 6 terminó sin conflictos. El merge real continúa pendiente y debe ejecutarse después de la revisión final del equipo y, si Cris exige evidencia propia de IA, después de la prueba anterior.
 
@@ -56,7 +66,7 @@ Criterio para marcarla como terminada:
 - El push a `origin/main` termina correctamente.
 - El árbol queda limpio y el commit remoto coincide con el local.
 
-### 3. Reproducir el arranque desde un clon limpio — prioridad media
+### 4. Reproducir el arranque desde un clon limpio — prioridad media
 
 Cris y Jean deben comprobar juntos un clon nuevo con `.env` privado, Docker Desktop, PostgreSQL y Ollama activos. La revisión del viernes conservó el volumen existente y no sustituye esta comprobación.
 
@@ -80,11 +90,13 @@ Criterio para marcarla como terminada:
 
 ## Orden recomendado para continuar
 
-1. Preparar Ollama en el equipo de Cris y ejecutar la prueba real una vez.
-2. Registrar el resultado y revisar el diff final.
-3. Integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
-4. Cerrar con Alejandra y Jean los contratos de la edición integrada antes de ampliarla o cambiar seguridad compartida.
-5. Planificar catálogo real, migraciones y cualquier trabajo posterior al MVP.
+1. Restablecer la ejecución local de Python 3.12 con `uv`.
+2. Preparar Ollama en el equipo de Cris y ejecutar la prueba real una vez.
+3. Registrar el resultado y revisar el diff final.
+4. Revisar la nueva entrega de Jean sobre clon limpio y flujo Docker antes de considerarla integrada.
+5. Integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
+6. Cerrar con Alejandra y Jean los contratos de la edición integrada antes de ampliarla o cambiar seguridad compartida.
+7. Planificar catálogo real, migraciones y cualquier trabajo posterior al MVP.
 
 ## Reglas para estas tareas
 

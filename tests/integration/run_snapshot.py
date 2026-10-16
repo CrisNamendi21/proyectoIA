@@ -82,7 +82,11 @@ def main() -> int:
                 raise SystemExit("El lockfile remoto cambió; coordinar el entorno antes de probar.")
             target = snapshot / "tests" / "integration"
             target.mkdir(parents=True, exist_ok=True)
-            for filename in ("conftest.py", "test_ai_planning_flow.py"):
+            for filename in (
+                "conftest.py",
+                "test_ai_planning_flow.py",
+                "test_patch_persistence_alejandra.py",
+            ):
                 shutil.copy2(root / "tests" / "integration" / filename, target / filename)
             command = [sys.executable, "-m", "pytest", "-q"]
             if args.real_ollama:

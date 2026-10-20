@@ -73,4 +73,4 @@ La etapa no incorpora Alembic, políticas de eliminación en cascada ni datos in
 
 ## Información aún necesaria
 
-Se requieren el catálogo curricular real, una ficha oficial de planificación y las decisiones de autenticación. También falta acordar el esquema Pydantic del contenido JSONB, la política de eliminación y una estrategia posterior de migraciones. Las fotografías son referencias y no convierten campos como indicador, evaluación o fechas de clase en requisitos definitivos.
+Se requieren el catálogo curricular real y una ficha oficial de planificación. Cris fijó para el MVP `TeachingPlanDraft` con `schema_version=1` como esquema Pydantic del contenido JSONB; una ficha posterior deberá originar una nueva versión en lugar de cambiar silenciosamente la versión 1. Continúan pendientes la política de eliminación y una estrategia de migraciones. Las fotografías son referencias y no convierten campos como indicador, evaluación o fechas de clase en requisitos definitivos.

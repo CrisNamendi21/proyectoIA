@@ -19,12 +19,18 @@ class PlanningStorageError(Exception):
 
 
 def validate_references(db: Session, data: PlanningCreate) -> None:
-    for model, identifier, label in (
-        (Grade, data.grade_id, "Grado"),
-        (Subject, data.subject_id, "Asignatura"),
+    for model, identifier, label, expected in (
+        (Grade, data.grade_id, "Grado", data.content.grade),
+        (Subject, data.subject_id, "Asignatura", data.content.subject),
     ):
-        if identifier is not None and db.get(model, identifier) is None:
-            raise PlanningReferenceError(f"{label} no encontrado")
+        if identifier is not None:
+            reference = db.get(model, identifier)
+            if reference is None:
+                raise PlanningReferenceError(f"{label} no encontrado")
+            if reference.name != expected:
+                raise PlanningCoherenceError(
+                    f"{label} no coincide con el contenido de la planificación"
+                )
 
     if data.curriculum_content_id is not None:
         curriculum = db.get(CurriculumContent, data.curriculum_content_id)
@@ -34,6 +40,10 @@ def validate_references(db: Session, data: PlanningCreate) -> None:
             raise PlanningCoherenceError("El contenido curricular no corresponde al grado")
         if data.subject_id is not None and data.subject_id != curriculum.subject_id:
             raise PlanningCoherenceError("El contenido curricular no corresponde a la asignatura")
+        if curriculum.description != data.content.curriculum_content:
+            raise PlanningCoherenceError(
+                "El contenido curricular no coincide con el contenido de la planificación"
+            )
 
 
 def create_planning(db: Session, data: PlanningCreate, owner_id: int) -> Planning:

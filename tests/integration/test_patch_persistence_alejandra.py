@@ -12,6 +12,32 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.models import Planning
+from app.schemas.planning_content import TeachingPlanDraft
+
+
+def planning_content(title: str) -> dict:
+    return TeachingPlanDraft(
+        title=title,
+        grade="Quinto grado",
+        subject="Matemática",
+        curriculum_content="Fracciones equivalentes",
+        learning_objective="Reconocer fracciones equivalentes mediante dibujos.",
+        activities=[
+            {
+                "stage": stage,
+                "description": "Comparar representaciones de fracciones.",
+                "minutes": 15,
+                "resources": ["tarjetas"],
+            }
+            for stage in ("inicio", "desarrollo", "cierre")
+        ],
+        assessment={
+            "criteria": ["Reconoce fracciones equivalentes"],
+            "evidence": "Ejercicios resueltos",
+        },
+        materials=["tarjetas"],
+        teacher_notes=[],
+    ).model_dump(mode="json")
 
 
 def test_patch_persiste_en_postgresql(flow_environment):
@@ -21,7 +47,7 @@ def test_patch_persiste_en_postgresql(flow_environment):
         "grade_id": env.grade_id,
         "subject_id": env.subject_id,
         "curriculum_content_id": env.content_id,
-        "content": {"title": "Planificacion original"},
+        "content": planning_content("Planificacion original"),
     }
 
     with TestClient(env.app) as docente:
@@ -35,10 +61,8 @@ def test_patch_persiste_en_postgresql(flow_environment):
         assert created.status_code == 201
         plan_id = created.json()["id"]
 
-        updated_content = {
-            "title": "Planificacion editada",
-            "activities": ["Actividad modificada"],
-        }
+        updated_content = planning_content("Planificacion editada")
+        updated_content["activities"][1]["description"] = "Actividad modificada"
 
         edited = docente.patch(
             f"/plans/{plan_id}",
@@ -63,7 +87,7 @@ def test_patch_persiste_en_postgresql(flow_environment):
 
             denied = otro_docente.patch(
                 f"/plans/{plan_id}",
-                json={"content": {"title": "Cambio no autorizado"}},
+                json={"content": planning_content("Cambio no autorizado")},
             )
             assert denied.status_code == 404
 

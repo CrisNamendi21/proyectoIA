@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import Session
+from starlette.middleware.sessions import SessionMiddleware
 
 
 @pytest.fixture
@@ -15,10 +16,11 @@ def catalog_client(monkeypatch):
         "DATABASE_URL",
         "postgresql+psycopg://test:test@127.0.0.1:1/catalogs_test",
     )
-    from app.api.catalogs import router
+    from app.api.catalogs import get_catalog_user, router
     from app.db.session import get_db_session
     from app.models.grade import Grade
     from app.models.subject import Subject
+    from app.models.user import User
 
     db = MagicMock(spec=Session)
     records = {
@@ -29,11 +31,17 @@ def catalog_client(monkeypatch):
     }
     db.get.side_effect = lambda model, identifier: records.get((model, identifier))
     app = FastAPI()
+    app.add_middleware(
+        SessionMiddleware, secret_key="clave-ficticia-de-pruebas-32-caracteres"
+    )
     app.include_router(router)
     app.dependency_overrides[get_db_session] = lambda: db
+    app.dependency_overrides[get_catalog_user] = lambda: User(
+        id=7, username="docente", is_active=True
+    )
 
     with TestClient(app) as client:
-        yield client, db
+        yield client, db, app
     app.dependency_overrides.clear()
 
 
@@ -67,7 +75,7 @@ def test_contents_filters(catalog_client, contents, params, expected_ids, expect
     from app.models.grade import Grade
     from app.models.subject import Subject
 
-    client, db = catalog_client
+    client, db, _ = catalog_client
     expected = [vars(row) for row in contents if row.id in expected_ids]
     db.scalars.return_value.all.return_value = [
         row for row in contents if row.id in expected_ids
@@ -104,7 +112,7 @@ def test_contents_filters(catalog_client, contents, params, expected_ids, expect
 @pytest.mark.parametrize("parameter", ["grade_id", "subject_id"])
 @pytest.mark.parametrize("value", ["0", "-1", "abc"])
 def test_contents_rejects_invalid_filters(catalog_client, parameter, value):
-    client, db = catalog_client
+    client, db, _ = catalog_client
 
     response = client.get("/catalogs/contents", params={parameter: value})
 
@@ -150,7 +158,7 @@ def test_contents_rejects_missing_ids(catalog_client, params, detail, expected_l
     from app.models.grade import Grade
     from app.models.subject import Subject
 
-    client, db = catalog_client
+    client, db, _ = catalog_client
     models = {"grade": Grade, "subject": Subject}
 
     response = client.get("/catalogs/contents", params=params)
@@ -172,7 +180,7 @@ def test_existing_ids_without_contents(catalog_client, params):
     from app.models.grade import Grade
     from app.models.subject import Subject
 
-    client, db = catalog_client
+    client, db, _ = catalog_client
     db.scalars.return_value.all.return_value = []
 
     response = client.get("/catalogs/contents", params=params)
@@ -197,7 +205,7 @@ def test_existing_ids_without_contents(catalog_client, params):
     ],
 )
 def test_basic_catalogs(catalog_client, endpoint, table, names):
-    client, db = catalog_client
+    client, db, _ = catalog_client
     rows = [SimpleNamespace(id=index, name=name) for index, name in enumerate(names, 1)]
     db.scalars.return_value.all.return_value = rows
 
@@ -212,3 +220,15 @@ def test_basic_catalogs(catalog_client, endpoint, table, names):
     assert str(statement.compile(dialect=postgresql.dialect())).endswith(
         f"ORDER BY {table}.id"
     )
+
+
+def test_catalogs_require_active_session(catalog_client):
+    from app.api.catalogs import get_catalog_user
+
+    client, db, app = catalog_client
+    del app.dependency_overrides[get_catalog_user]
+
+    response = client.get("/catalogs/grades")
+
+    assert response.status_code == 401
+    db.scalars.assert_not_called()

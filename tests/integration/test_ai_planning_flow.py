@@ -1,4 +1,4 @@
-"""Flujo HTTP real con PostgreSQL; contrato pedagógico todavía provisional.
+"""Flujo HTTP real con PostgreSQL y contrato pedagógico versionado.
 
 Se ejecuta sobre el snapshot de Cris mediante run_snapshot.py. El checkout antiguo
 de Jean puede no incluir planes, por lo que la activación es explícita.
@@ -38,6 +38,7 @@ def generation_request():
 
 def draft_payload():
     return {
+        "schema_version": 1,
         "title": "Fracciones equivalentes", "grade": "Quinto grado",
         "subject": "Matemática", "curriculum_content": "Fracciones equivalentes",
         "learning_objective": "Reconocer fracciones equivalentes mediante dibujos.",
@@ -264,10 +265,15 @@ def test_invalid_generation_and_catalog_filters(flow_environment, ollama_transpo
 def test_postgres_storage_failure_rolls_back_and_next_request_works(flow_environment):
     env = flow_environment
     with env.engine.begin() as connection:
-        connection.execute(text("ALTER TABLE plannings ADD CONSTRAINT ai_flow_test_storage_failure CHECK (NOT (content ? 'force_storage_error'))"))
+        connection.execute(text(
+            "ALTER TABLE plannings ADD CONSTRAINT ai_flow_test_storage_failure "
+            "CHECK (content->>'title' <> 'Forzar error')"
+        ))
     with TestClient(env.app) as client:
         login(client)
-        response = client.post("/plans", json={"content": {"force_storage_error": True}})
+        response = client.post(
+            "/plans", json=planning_body(env, draft_payload() | {"title": "Forzar error"})
+        )
         assert response.status_code == 500
         assert response.json() == {"detail": "No se pudo guardar la planificación"}
         assert plan_count(env) == 0
@@ -286,10 +292,9 @@ def test_database_unavailable_http_is_sanitized(flow_environment):
         assert response.json() == {"detail": "Base de datos no disponible."}
 
 
-def test_catalogs_currently_allow_anonymous_reading(flow_environment):
-    # Observación de la implementación actual; no aprueba una política de acceso.
+def test_catalogs_require_authenticated_reading(flow_environment):
     with TestClient(flow_environment.app) as client:
-        assert client.get("/catalogs/grades").status_code == 200
+        assert client.get("/catalogs/grades").status_code == 401
 
 
 def test_logout_does_not_revoke_a_previously_copied_cookie(flow_environment):

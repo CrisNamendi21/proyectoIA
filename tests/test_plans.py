@@ -12,6 +12,34 @@ from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
 
+def draft_payload(**changes):
+    payload = {
+        "schema_version": 1,
+        "title": "Fracciones",
+        "grade": "Quinto",
+        "subject": "Matematica",
+        "curriculum_content": "Fracciones",
+        "learning_objective": "Comparar fracciones",
+        "activities": [
+            {
+                "stage": stage,
+                "description": "Comparar representaciones",
+                "minutes": 15,
+                "resources": ["tarjetas"],
+            }
+            for stage in ("inicio", "desarrollo", "cierre")
+        ],
+        "assessment": {
+            "criteria": ["Compara fracciones"],
+            "evidence": "Ejercicios resueltos",
+        },
+        "materials": ["pizarra"],
+        "teacher_notes": [],
+    }
+    payload.update(changes)
+    return payload
+
+
 @pytest.fixture
 def plan_client(monkeypatch):
     monkeypatch.setenv(
@@ -23,11 +51,13 @@ def plan_client(monkeypatch):
 
     db = MagicMock(spec=Session)
     records = {
-        (Grade, 1): SimpleNamespace(id=1),
-        (Grade, 2): SimpleNamespace(id=2),
-        (Subject, 1): SimpleNamespace(id=1),
-        (Subject, 2): SimpleNamespace(id=2),
-        (CurriculumContent, 1): SimpleNamespace(id=1, grade_id=1, subject_id=1),
+        (Grade, 1): SimpleNamespace(id=1, name="Quinto"),
+        (Grade, 2): SimpleNamespace(id=2, name="Sexto"),
+        (Subject, 1): SimpleNamespace(id=1, name="Matematica"),
+        (Subject, 2): SimpleNamespace(id=2, name="Lengua"),
+        (CurriculumContent, 1): SimpleNamespace(
+            id=1, grade_id=1, subject_id=1, description="Fracciones"
+        ),
     }
     db.get.side_effect = lambda model, identifier: records.get((model, identifier))
 
@@ -51,7 +81,7 @@ def plan_client(monkeypatch):
 def plan():
     return SimpleNamespace(
         id=10, user_id=7, grade_id=None, subject_id=None, curriculum_content_id=None,
-        content={"actividades": ["Leer", {"duracion": 20}], "extra": None},
+        content=draft_payload(),
         created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc),
     )
 
@@ -69,7 +99,7 @@ def where_sql(db):
 ])
 def test_create_plan(plan_client, references):
     client, db, _ = plan_client
-    content = {"texto": "Propuesta", "datos": [1, 1.5, True, None, {}]}
+    content = draft_payload()
     response = client.post("/plans", json={"content": content, **references})
     assert response.status_code == 201
     assert response.json()["content"] == content
@@ -94,11 +124,13 @@ def test_reject_non_object_json(plan_client, content):
 
 
 @pytest.mark.parametrize("content", [
-    {"value": float("nan")}, {"value": float("inf")},
-    {"value": datetime.now(timezone.utc)}, {1: "non-string-key"},
-    {"value": (1, 2)}, {"value": {1, 2}},
+    {},
+    draft_payload(schema_version=2),
+    draft_payload(unknown="value"),
+    draft_payload(activities=[]),
+    draft_payload(activities=[draft_payload()["activities"][0]] * 3),
 ])
-def test_schema_rejects_non_json_python_values(content):
+def test_schema_rejects_content_outside_contract(content):
     from app.schemas.plans import PlanningCreate
     with pytest.raises(ValidationError):
         PlanningCreate(content=content)
@@ -108,7 +140,7 @@ def test_schema_rejects_non_json_python_values(content):
 @pytest.mark.parametrize("value", [0, -1, "1", True, 1.5])
 def test_invalid_reference_ids(plan_client, field, value):
     client, db, _ = plan_client
-    response = client.post("/plans", json={"content": {}, field: value})
+    response = client.post("/plans", json={"content": draft_payload(), field: value})
     assert response.status_code == 422
     db.get.assert_not_called()
     db.add.assert_not_called()
@@ -116,14 +148,16 @@ def test_invalid_reference_ids(plan_client, field, value):
 
 def test_client_cannot_assign_owner(plan_client):
     client, db, _ = plan_client
-    assert client.post("/plans", json={"content": {}, "user_id": 8}).status_code == 422
+    assert client.post(
+        "/plans", json={"content": draft_payload(), "user_id": 8}
+    ).status_code == 422
     db.add.assert_not_called()
 
 
 @pytest.mark.parametrize("field", ["grade_id", "subject_id", "curriculum_content_id"])
 def test_missing_reference(plan_client, field):
     client, db, _ = plan_client
-    response = client.post("/plans", json={"content": {}, field: 99})
+    response = client.post("/plans", json={"content": draft_payload(), field: 99})
     assert response.status_code == 404
     db.rollback.assert_called_once_with()
     db.add.assert_not_called()
@@ -133,8 +167,38 @@ def test_missing_reference(plan_client, field):
 @pytest.mark.parametrize("field", ["grade_id", "subject_id"])
 def test_incompatible_curriculum(plan_client, field):
     client, db, _ = plan_client
-    response = client.post("/plans", json={"content": {}, "curriculum_content_id": 1, field: 2})
+    response = client.post(
+        "/plans",
+        json={"content": draft_payload(), "curriculum_content_id": 1, field: 2},
+    )
     assert response.status_code == 422
+    db.rollback.assert_called_once_with()
+    db.add.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("references", "content_change", "detail"),
+    [
+        ({"grade_id": 1}, {"grade": "Sexto"}, "Grado no coincide"),
+        ({"subject_id": 1}, {"subject": "Lengua"}, "Asignatura no coincide"),
+        (
+            {"curriculum_content_id": 1},
+            {"curriculum_content": "Decimales"},
+            "Contenido curricular no coincide",
+        ),
+    ],
+)
+def test_rejects_names_that_do_not_match_catalog(
+    plan_client, references, content_change, detail
+):
+    client, db, _ = plan_client
+
+    response = client.post(
+        "/plans", json={"content": draft_payload(**content_change), **references}
+    )
+
+    assert response.status_code == 422
+    assert detail.lower() in response.json()["detail"].lower()
     db.rollback.assert_called_once_with()
     db.add.assert_not_called()
 
@@ -192,7 +256,9 @@ def test_invalid_path_id(plan_client, plan_id):
 def test_transaction_failure(plan_client, operation):
     client, db, _ = plan_client
     getattr(db, operation).side_effect = SQLAlchemyError("internal database detail")
-    response = client.post("/plans", json={"content": {}, "grade_id": 1})
+    response = client.post(
+        "/plans", json={"content": draft_payload(), "grade_id": 1}
+    )
     assert response.status_code == 500
     assert response.json() == {"detail": "No se pudo guardar la planificación"}
     db.rollback.assert_called_once_with()
@@ -225,10 +291,11 @@ def test_update_owner_replaces_content_and_preserves_identity(update_client):
     client, db, _, plan = update_client
     original = (plan.id, plan.user_id, plan.created_at)
     old_content = plan.content
-    response = client.patch("/plans/10", json={"content": {"nuevo": [1, None]}})
+    new_content = draft_payload(title="Fracciones revisadas")
+    response = client.patch("/plans/10", json={"content": new_content})
     assert response.status_code == 200
-    assert response.json()["content"] == {"nuevo": [1, None]}
-    assert old_content == {"actividades": ["Leer", {"duracion": 20}], "extra": None}
+    assert response.json()["content"] == new_content
+    assert old_content == draft_payload()
     assert (plan.id, plan.user_id, plan.created_at) == original
     assert where_sql(db) == "plannings.id = 10 AND plannings.user_id = 7"
     db.flush.assert_called_once_with()
@@ -242,7 +309,9 @@ def test_update_missing_or_other_owner(update_client, plan_id):
     client, db, _, plan = update_client
     original = plan.content.copy()
     db.scalars.return_value.one_or_none.return_value = None
-    response = client.patch(f"/plans/{plan_id}", json={"content": {"changed": True}})
+    response = client.patch(
+        f"/plans/{plan_id}", json={"content": draft_payload(title="Cambio")}
+    )
     assert response.status_code == 404
     assert response.json() == {"detail": "Planificación no encontrada"}
     assert where_sql(db) == f"plannings.id = {plan_id} AND plannings.user_id = 7"
@@ -293,7 +362,7 @@ def test_update_rejects_invalid_body(update_client, body):
 def test_update_schema_rejects_non_json_values(value):
     from app.schemas.plans import PlanningUpdate
     with pytest.raises(ValidationError):
-        PlanningUpdate(content={"value": value})
+        PlanningUpdate(content=draft_payload(materials=[value]))
 
 
 def test_update_rejects_malformed_json(update_client):
@@ -378,7 +447,7 @@ def test_update_preserves_complete_teaching_draft(update_client):
     from app.services.ai.schemas import TeachingPlanDraft
     client, _, _, _ = update_client
     draft = TeachingPlanDraft(
-        title="Fracciones", grade="Quinto", subject="Matemática",
+        title="Fracciones", grade="Quinto", subject="Matematica",
         curriculum_content="Fracciones", learning_objective="Comparar fracciones",
         activities=[{"stage": stage, "description": "Comparar dibujos", "minutes": 15,
                      "resources": ["tarjetas"]} for stage in ("inicio", "desarrollo", "cierre")],
@@ -391,4 +460,5 @@ def test_update_preserves_complete_teaching_draft(update_client):
 def test_update_schema_distinguishes_omission_and_null():
     from app.schemas.plans import PlanningUpdate
     assert PlanningUpdate(grade_id=None).model_dump(exclude_unset=True) == {"grade_id": None}
-    assert PlanningUpdate(content={}).model_dump(exclude_unset=True) == {"content": {}}
+    with pytest.raises(ValidationError):
+        PlanningUpdate(content=None)

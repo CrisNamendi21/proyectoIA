@@ -89,10 +89,6 @@ Criterio para marcarla como terminada:
 
 | Pendiente | Responsable de coordinar | Resultado esperado |
 | --- | --- | --- |
-| Aprobar el JSON completo de `TeachingPlanDraft` como `Planning.content`, su versión y sus reglas de edición. | Alejandra con Cris y Jean | Contrato compartido actualizado y pruebas acordadas. |
-| Revisar y aprobar el contrato de la edición ya integrada. | Alejandra con Cris y Jean | Confirmación del formato pedagógico, versión, reglas semánticas y pruebas acordadas. |
-| Confirmar si los catálogos seguirán públicos o exigirán sesión. | Alejandra con Cris | Política HTTP explícita en contratos y pruebas. |
-| Decidir revocación de sesión en servidor y protección adicional para peticiones con cookie. | Cris con el equipo | Decisión documentada; implementación y pruebas si se exige. |
 | Proporcionar el catálogo curricular y las cuentas docentes reales por canales apropiados. | Equipo y colegio | Datos aprobados, estrategia de carga y ausencia de datos personales en Git. |
 | Adoptar migraciones para cambios futuros del esquema. | Equipo | Herramienta y procedimiento que sustituyan `create_all()` para evoluciones de base de datos. |
 | Decidir si se reescribe el historial que contenía una credencial antigua. | Equipo | Decisión coordinada; la credencial local ya fue rotada y dejó de ser válida. |
@@ -107,6 +103,7 @@ Criterio para marcarla como terminada:
 
 ## Completado después del cierre inicial
 
+- Cris cerró para el MVP `TeachingPlanDraft` versión 1 como contenido persistido, la edición validada, los catálogos con sesión y la aceptación temporal de logout sin revocación en servidor. Alejandra no estaba disponible y no se le atribuyó la aprobación.
 - Alejandra implementó y validó `PATCH /plans/{plan_id}`; Cris integró su prueba PostgreSQL en el runner.
 - Jean verificó un clon limpio, build Docker sin caché, PostgreSQL aislado, comunicación con Ollama y una generación HTTP real.
 - Cris integró ambas entregas y la suite final aprobó 226 pruebas sobre Python 3.12 y PostgreSQL real, sin bases temporales residuales.

@@ -9,6 +9,7 @@ from app.services.ai.schemas import CurriculumContext, PlanningGenerationRequest
 
 def valid_generated_payload() -> dict:
     return {
+        "schema_version": 1,
         "title": "Planificación sobre fracciones",
         "grade": "Quinto grado",
         "subject": "Matemática",

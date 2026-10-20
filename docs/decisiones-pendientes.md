@@ -6,15 +6,22 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
-| Alta | Necesidad de revocación de sesión en servidor y protección adicional frente a solicitudes entre sitios. | Equipo | Cris confirmó para el MVP la cookie firmada y el logout local; una copia previa de la cookie sigue válida hasta expirar. |
-| Alta | Contratos todavía no cerrados de los módulos funcionales. | Los tres | Cris confirmó `/generation`, la sesión y las rutas actuales; la edición técnica de planes ya está integrada, pero faltan su aprobación pedagógica y la conformidad de Alejandra sobre catálogos públicos. |
-| Alta | Aprobación compartida de `TeachingPlanDraft` como forma de `Planning.content`, vínculos curriculares y reglas de edición. | Alejandra con Cris y Jean | Cris confirmó su compatibilidad técnica; Alejandra debe aprobar el contrato del módulo de planes. |
-| Alta | Contrato de solicitud y respuesta de Ollama, incluidos sus errores. | Jean con Cris y Alejandra | Permite crear mocks compatibles con el guardado. |
 | Media | Catálogo curricular real y reglas de grado, asignatura y contenido. | Alejandra con el equipo y el colegio | Define datos iniciales y validaciones del dominio. |
 | Media | Datos curriculares y estrategia para cargarlos. | Equipo | Las cuentas tienen carga idempotente; todavía no existe un catálogo oficial que pueda versionarse o cargarse. |
 | Media | Si “sección” será catálogo, columna, campo flexible o quedará fuera del MVP. | Equipo y colegio | Grado y sección son conceptos distintos. |
 | Media | Ficha oficial y campos pedagógicos obligatorios. | Colegio y equipo | Las fotografías son referencias, no la especificación final. |
 | Media | Estrategia de migraciones y política de eliminación entre entidades. | Equipo | `create_all()` sirve para la base inicial, pero no gestiona cambios de esquema. |
+
+## Decisiones cerradas por Cris para el MVP — 19 de octubre de 2026
+
+Alejandra no estaba disponible durante este cierre. Estas decisiones permiten continuar con un contrato comprobable del MVP, pero no se atribuyen a Alejandra ni sustituyen la futura revisión del equipo o una ficha oficial del colegio.
+
+- `Planning.content` conserva el objeto completo `TeachingPlanDraft` con `schema_version=1`; los IDs curriculares se almacenan en las columnas relacionales existentes.
+- La creación y la edición rechazan contenido incompleto, versiones desconocidas, campos adicionales y referencias cuyos nombres no coincidan con el borrador.
+- El docente puede editar el borrador antes de guardarlo y mediante `PATCH`; el servidor valida el estado completo antes del commit.
+- Los catálogos son de solo lectura, pero requieren una sesión válida y una cuenta activa.
+- `POST /generation` mantiene el contrato de errores implementado y no persiste automáticamente su respuesta.
+- El MVP conserva la cookie firmada de ocho horas sin revocación individual en servidor. La revocación, la protección CSRF, HTTPS y la cookie `Secure` son requisitos antes de una puesta en producción real.
 
 ## Propuesta provisional de autenticación — 11 de octubre de 2026
 
@@ -32,11 +39,11 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 
 La cookie firmada permite leer su contenido, aunque no modificarlo sin la clave; por eso solo contiene el ID. El logout implementado borra la cookie del cliente, pero no invalida una copia obtenida antes: si el equipo requiere revocación inmediata en el servidor, habrá que elegir otro mecanismo. Los endpoints que escriben datos también requieren revisar la protección frente a solicitudes entre sitios al usar cookies.
 
-**Avance al miércoles 14:** `POST /auth/logout` y `GET /auth/me` están implementados; generación y planificaciones usan `get_current_user`, y sus routers están registrados en `main.py`. La suite comprueba el cierre de sesión, la identidad posterior, las rutas protegidas y la sanitización de errores de base de datos. Cris confirmó la cookie y su duración actual para el MVP; la política de revocación y los controles adicionales siguen pendientes del equipo.
+**Avance al miércoles 14:** `POST /auth/logout` y `GET /auth/me` están implementados; generación y planificaciones usan `get_current_user`, y sus routers están registrados en `main.py`. La suite comprueba el cierre de sesión, la identidad posterior, las rutas protegidas y la sanitización de errores de base de datos. El 19 de octubre Cris aceptó para el MVP la ausencia de revocación individual y fijó la revocación en servidor y los controles CSRF como requisitos previos a producción.
 
-**Revisión de integración de Cris — 14 de octubre:** Cris confirmó `POST /generation` como ruta definitiva del MVP y aceptó el mecanismo de sesión actual para integrar generación y planes. También propuso mantener los catálogos como lectura pública durante el MVP; este punto necesita conformidad de Alejandra. La estructura completa de `TeachingPlanDraft` dentro de `Planning.content`, con los IDs curriculares separados, es técnicamente compatible y fue aceptada por Cris como base de integración, pero permanece provisional hasta la revisión de Alejandra. Las reglas detalladas y sus estados están en [contratos compartidos](contratos.md).
+**Revisión de integración de Cris — 14 de octubre:** Cris confirmó `POST /generation` como ruta definitiva del MVP y aceptó el mecanismo de sesión actual para integrar generación y planes. La propuesta inicial de catálogos públicos y el formato pedagógico provisional fueron reemplazados por las decisiones de Cris del 19 de octubre. Las reglas vigentes y sus estados están en [contratos compartidos](contratos.md).
 
-**Actualización de Alejandra — 15 de octubre:** `PATCH /plans/{plan_id}` ya está implementado e integrado con control de propietario, actualización parcial, validación del estado final y rollback. Sus pruebas confirman que el JSON completo de `TeachingPlanDraft` puede preservarse al editar. Continúan pendientes la aprobación expresa del formato pedagógico, su versión, las reglas de coherencia semántica y la política de acceso a catálogos.
+**Actualización de Alejandra — 15 de octubre:** `PATCH /plans/{plan_id}` ya está implementado e integrado con control de propietario, actualización parcial, validación del estado final y rollback. Sus pruebas confirmaron que el JSON completo de `TeachingPlanDraft` podía preservarse al editar. El 19 de octubre Cris fijó para el MVP la versión 1, las reglas de coherencia y la autenticación de catálogos; esta decisión no se atribuye a Alejandra.
 
 **Cierre de la etapa 5:** la [verificación reproducible](verificacion-etapa-5-2026-10-11.md) cubrió carga, acceso correcto y rechazado, identidad posterior y persistencia de hashes en PostgreSQL. La credencial local de PostgreSQL que apareció en el historial se rotó durante la validación final del viernes: la anterior fue rechazada y la nueva permanece únicamente en el `.env` ignorado. La posible limpieza del historial compartido y la coordinación del contrato con Jean y Alejandra siguen pendientes. No se registra aquí ningún valor privado.
 

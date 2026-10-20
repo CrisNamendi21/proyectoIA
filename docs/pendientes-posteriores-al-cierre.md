@@ -10,15 +10,24 @@ Esto no significa que el producto completo esté cerrado. Las tareas siguientes 
 
 ## Tareas que Cris hará después
 
-### 1. Restablecer Python 3.12 local — prioridad alta
+### 1. Restablecer Python 3.12 local — completado el 19 de octubre de 2026
 
-Windows bloqueó `.venv\Scripts\python.exe` mediante una directiva de Control de aplicaciones después de haberlo ejecutado correctamente en sesiones anteriores. Las últimas pruebas se completaron en el contenedor oficial Python 3.12, pero el flujo local con `uv run` debe recuperarse.
+El bloqueo de Control de aplicaciones afectaba únicamente al ejecutable antiguo de `.venv\Scripts\python.exe`. El intérprete base CPython 3.12.14 administrado por `uv` funcionaba correctamente, por lo que se reconstruyó el entorno virtual desde `uv.lock` sin desactivar la protección de Windows ni modificar las dependencias declaradas.
 
-Pasos manuales:
+Comandos aplicados:
 
-1. Reiniciar la terminal y comprobar `uv run python --version`.
-2. Si continúa el mensaje de bloqueo, revisar la notificación de Seguridad de Windows o solicitar al administrador que autorice o repare el intérprete administrado por uv. Mantener activa la protección; no deshabilitarla para ejecutar el proyecto.
-3. Confirmar que `uv run python --version` muestra Python 3.12.x y repetir `uv run pytest -q`.
+```powershell
+uv venv --clear --python 3.12 .venv
+uv sync --locked
+uv run python --version
+```
+
+Resultado verificado:
+
+- `uv run python --version`: Python 3.12.14.
+- `uv run pytest -q`: 195 aprobadas, 5 omitidas y 1 advertencia.
+- `uv run python tests/integration/run_snapshot.py --ref HEAD`: 226 aprobadas, 1 omitida y 1 advertencia sobre PostgreSQL real.
+- El runner integrado confirmó código de salida 0, catálogo temporal intacto y 0 bases residuales nuevas.
 
 ### 2. Reproducir Ollama en el equipo de Cris — prioridad media
 

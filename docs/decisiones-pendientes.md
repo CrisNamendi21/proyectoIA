@@ -6,9 +6,8 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
-| Alta | Verificación del entorno desde un clon limpio con Docker y Ollama activos. | Jean con Cris | `compose.yaml` y `.env.example` ya existen; falta demostrar el arranque completo en otra instalación. |
 | Alta | Necesidad de revocación de sesión en servidor y protección adicional frente a solicitudes entre sitios. | Equipo | Cris confirmó para el MVP la cookie firmada y el logout local; una copia previa de la cookie sigue válida hasta expirar. |
-| Alta | Contratos todavía no cerrados de los módulos funcionales. | Los tres | Cris confirmó `/generation`, la sesión y las rutas actuales; falta la edición de planes y la conformidad de Alejandra sobre catálogos públicos. |
+| Alta | Contratos todavía no cerrados de los módulos funcionales. | Los tres | Cris confirmó `/generation`, la sesión y las rutas actuales; la edición técnica de planes ya está integrada, pero faltan su aprobación pedagógica y la conformidad de Alejandra sobre catálogos públicos. |
 | Alta | Aprobación compartida de `TeachingPlanDraft` como forma de `Planning.content`, vínculos curriculares y reglas de edición. | Alejandra con Cris y Jean | Cris confirmó su compatibilidad técnica; Alejandra debe aprobar el contrato del módulo de planes. |
 | Alta | Contrato de solicitud y respuesta de Ollama, incluidos sus errores. | Jean con Cris y Alejandra | Permite crear mocks compatibles con el guardado. |
 | Media | Catálogo curricular real y reglas de grado, asignatura y contenido. | Alejandra con el equipo y el colegio | Define datos iniciales y validaciones del dominio. |
@@ -37,7 +36,9 @@ La cookie firmada permite leer su contenido, aunque no modificarlo sin la clave;
 
 **Revisión de integración de Cris — 14 de octubre:** Cris confirmó `POST /generation` como ruta definitiva del MVP y aceptó el mecanismo de sesión actual para integrar generación y planes. También propuso mantener los catálogos como lectura pública durante el MVP; este punto necesita conformidad de Alejandra. La estructura completa de `TeachingPlanDraft` dentro de `Planning.content`, con los IDs curriculares separados, es técnicamente compatible y fue aceptada por Cris como base de integración, pero permanece provisional hasta la revisión de Alejandra. Las reglas detalladas y sus estados están en [contratos compartidos](contratos.md).
 
-**Cierre de la etapa 5:** la [verificación reproducible](verificacion-etapa-5-2026-10-11.md) cubrió carga, acceso correcto y rechazado, identidad posterior y persistencia de hashes en PostgreSQL. Se detectó que una clave local de PostgreSQL publicada en el historial de Git sigue en uso; su rotación y la coordinación del contrato con Jean y Alejandra son pendientes prioritarios. No se registra aquí el valor de la clave.
+**Actualización de Alejandra — 15 de octubre:** `PATCH /plans/{plan_id}` ya está implementado e integrado con control de propietario, actualización parcial, validación del estado final y rollback. Sus pruebas confirman que el JSON completo de `TeachingPlanDraft` puede preservarse al editar. Continúan pendientes la aprobación expresa del formato pedagógico, su versión, las reglas de coherencia semántica y la política de acceso a catálogos.
+
+**Cierre de la etapa 5:** la [verificación reproducible](verificacion-etapa-5-2026-10-11.md) cubrió carga, acceso correcto y rechazado, identidad posterior y persistencia de hashes en PostgreSQL. La credencial local de PostgreSQL que apareció en el historial se rotó durante la validación final del viernes: la anterior fue rechazada y la nueva permanece únicamente en el `.env` ignorado. La posible limpieza del historial compartido y la coordinación del contrato con Jean y Alejandra siguen pendientes. No se registra aquí ningún valor privado.
 
 Referencias técnicas para evaluar la propuesta: [hashing con Argon2 en FastAPI](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) y [sesiones por cookie en Starlette](https://www.starlette.io/middleware/).
 
@@ -58,6 +59,12 @@ Referencias técnicas para evaluar la propuesta: [hashing con Argon2 en FastAPI]
 - Las pruebas integradas usan PostgreSQL real y una base desechable con UUID por caso; nunca vacían ni reutilizan la base de desarrollo.
 - El runner verifica el catálogo antes y después de la suite y falla si deja bases temporales nuevas.
 - Ollama se simula en la regresión principal; una inferencia real se ejecuta por separado y de forma explícita cuando el entorno dispone del modelo.
+
+## Verificaciones técnicas cerradas después del 14 de octubre
+
+- Jean reprodujo el proyecto desde un clon HTTPS limpio con configuración temporal, build Docker sin caché, PostgreSQL aislado y Ollama real.
+- El flujo HTTP real del backend Docker completó autenticación, catálogos, una generación con `qwen2.5:3b`, guardado JSONB, propiedad e identidad posterior.
+- Cris integró la prueba PostgreSQL de edición de Alejandra y el cierre de infraestructura de Jean en `Cris-develop`.
 
 ## Diferencia de redacción resuelta
 

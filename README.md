@@ -2,7 +2,7 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 14 de octubre de 2026
+## Estado al 19 de octubre de 2026
 
 La base técnica y los módulos principales están integrados en `Cris-develop`:
 
@@ -15,10 +15,14 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`;
 - sesión por cookie firmada, consulta de identidad y cierre de sesión;
 - rutas de generación y planificaciones protegidas con `get_current_user`;
+- edición parcial de planificaciones con control de propietario y validación de referencias;
 - respuestas controladas para fallos de PostgreSQL y Ollama.
 - flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
+- arranque desde clon limpio y flujo HTTP real del backend Docker hacia Ollama verificados por Jean.
 
-Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar y consultar; la edición y la aprobación del formato pedagógico corresponden al siguiente avance de Alejandra. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. La edición técnica publicada por Alejandra protege la propiedad, conserva los campos omitidos y vuelve a validar las referencias curriculares; la aprobación compartida del formato pedagógico continúa pendiente. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+
+El alcance técnico del viernes está cerrado. Jean ya comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris integró esa evidencia; reproducirla en el equipo de Cris continúa como verificación local. El merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
 ## Requisitos
 
@@ -39,22 +43,23 @@ uv run python --version
 
 La segunda orden debe mostrar Python 3.12.x.
 
-Crea un archivo local `.env` en la raíz. Este archivo está ignorado por Git. Mientras FastAPI se ejecute directamente en Windows, usa la contraseña configurada en el contenedor PostgreSQL:
+Crea un archivo local `.env` en la raíz a partir de `.env.example`. Este archivo está ignorado por Git. Conserva todos los nombres de variables y reemplaza únicamente los marcadores de contraseña PostgreSQL y clave de sesión por valores privados:
 
-```dotenv
-DATABASE_URL=postgresql+psycopg://equipo_alfa:<CONTRASENA_LOCAL>@localhost:5432/colegio_alfa_db
-SESSION_SECRET_KEY=<CLAVE_ALEATORIA_DE_32_O_MAS_CARACTERES>
-SESSION_COOKIE_SECURE=false
+```powershell
+if (Test-Path .env) { throw ".env ya existe; revísalo sin sobrescribirlo." }
+Copy-Item .env.example .env
 ```
 
-Sustituye los marcadores por valores locales. `SESSION_SECRET_KEY` es obligatoria; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido. `.env.example` documenta el conjunto completo de variables usadas por Compose y Ollama.
+En la configuración de Compose, `DATABASE_URL` usa `alfa-db` como host. `SESSION_SECRET_KEY` es obligatoria y debe tener al menos 32 caracteres; `SESSION_COOKIE_SECURE` debe ser `true` al servir la API mediante HTTPS. No versiones `.env` ni compartas su contenido.
+
+La ejecución nativa de FastAPI en Windows necesita cambiar el host de PostgreSQL a `localhost` únicamente para ese proceso. La [guía de infraestructura](docs/infraestructura-jean.md#variables-reales) contiene el procedimiento que reutiliza la contraseña en memoria sin imprimirla ni guardarla en el historial de la terminal.
 
 ## Crear las tablas
 
-Con PostgreSQL disponible, ejecuta:
+Con los servicios de Compose disponibles, ejecuta:
 
 ```powershell
-uv run python -m app.db.init_db
+docker compose exec -T backend python -m app.db.init_db
 ```
 
 La inicialización usa `create_all()` y no reemplaza una estrategia posterior de migraciones.
@@ -62,7 +67,7 @@ La inicialización usa `create_all()` y no reemplaza una estrategia posterior de
 Para crear una cuenta docente sin guardar la contraseña en archivos o en el historial de la terminal:
 
 ```powershell
-uv run python -m app.db.seed_users <nombre_de_usuario>
+docker compose exec backend python -m app.db.seed_users <nombre_de_usuario>
 ```
 
 El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta ya existe, no modifica sus datos.
@@ -70,7 +75,7 @@ El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta
 ## Iniciar la API
 
 ```powershell
-uv run uvicorn app.main:app --reload
+docker compose up -d --build
 ```
 
 Comprueba la ruta de salud:
@@ -79,15 +84,15 @@ Comprueba la ruta de salud:
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
-La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesión, `GET /auth/me` devuelve la identidad pública y `POST /auth/logout` elimina la cookie. Las rutas `/generation` y `/plans` requieren una sesión válida. El contrato HTTP disponible puede consultarse en `http://127.0.0.1:8000/docs`.
+La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesión, `GET /auth/me` devuelve la identidad pública y `POST /auth/logout` elimina la cookie. Las rutas `/generation` y `/plans` requieren una sesión válida; `PATCH /plans/{plan_id}` permite editar parcialmente solo una planificación del docente autenticado. El contrato HTTP disponible puede consultarse en `http://127.0.0.1:8000/docs`.
 
 ## Comprobar PostgreSQL
 
 ```powershell
-uv run python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
+docker compose exec -T backend python -c "from sqlalchemy import text; from app.db.session import engine; connection = engine.connect(); print(connection.execute(text('SELECT 1')).scalar_one()); connection.close(); engine.dispose()"
 ```
 
-La salida esperada es `1`. Este comando, la creación de tablas y el arranque de Uvicorn fueron comprobados el 10 de octubre de 2026.
+La salida esperada es `1`. La construcción de la imagen, el arranque de ambos servicios, la conexión y la existencia de las cinco tablas se comprobaron nuevamente durante la validación final.
 
 ## Estructura
 
@@ -104,7 +109,7 @@ docs/                   arquitectura, contratos y coordinación
 tests/                  pruebas aisladas y pruebas opcionales con PostgreSQL
 ```
 
-La edición de planificaciones y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
+La aprobación del contrato pedagógico de edición y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
 
 ## Continuación del equipo
 
@@ -123,3 +128,6 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Infraestructura Docker y Ollama](docs/infraestructura-jean.md)
 - [Propuesta de integración entre IA y planificaciones](docs/integracion-ia-planificaciones-2026-10-14.md)
 - [Verificación del flujo integrado preparada por Jean](docs/verificacion-flujo-integrado-jean-2026-10-14.md)
+- [Reproducibilidad desde clon limpio y flujo Docker real](docs/reproducibilidad-clon-limpio-jean-2026-10-15.md)
+- [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
+- [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)

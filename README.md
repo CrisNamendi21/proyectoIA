@@ -2,7 +2,7 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 15 de octubre de 2026
+## Estado al 19 de octubre de 2026
 
 La base técnica y los módulos principales están integrados en `Cris-develop`:
 
@@ -18,10 +18,11 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - edición parcial de planificaciones con control de propietario y validación de referencias;
 - respuestas controladas para fallos de PostgreSQL y Ollama.
 - flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
+- arranque desde clon limpio y flujo HTTP real del backend Docker hacia Ollama verificados por Jean.
 
 Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. La edición técnica publicada por Alejandra protege la propiedad, conserva los campos omitidos y vuelve a validar las referencias curriculares; la aprobación compartida del formato pedagógico continúa pendiente. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
 
-El alcance técnico del viernes está cerrado, pero el producto completo conserva tareas posteriores. La instalación y prueba real de Ollama en el equipo de Cris, el merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
+El alcance técnico del viernes está cerrado. Jean ya comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris integró esa evidencia; reproducirla en el equipo de Cris continúa como verificación local. El merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
 ## Requisitos
 
@@ -127,5 +128,6 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Infraestructura Docker y Ollama](docs/infraestructura-jean.md)
 - [Propuesta de integración entre IA y planificaciones](docs/integracion-ia-planificaciones-2026-10-14.md)
 - [Verificación del flujo integrado preparada por Jean](docs/verificacion-flujo-integrado-jean-2026-10-14.md)
+- [Reproducibilidad desde clon limpio y flujo Docker real](docs/reproducibilidad-clon-limpio-jean-2026-10-15.md)
 - [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
 - [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)

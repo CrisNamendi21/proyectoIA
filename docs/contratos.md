@@ -1,20 +1,20 @@
 # Contratos compartidos
 
-## Estado al 15 de octubre de 2026
+## Estado al 19 de octubre de 2026
 
 Esta página distingue lo implementado y comprobado de los acuerdos que todavía necesita el equipo. La existencia de una propuesta en este documento no la convierte en un contrato aprobado.
 
 | Área | Estado | Contrato actual | Pendiente |
 | --- | --- | --- | --- |
-| PostgreSQL | Configuración versionada y comprobada previamente | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, clave definida solo en el entorno local, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Repetir la prueba desde clon limpio con Docker activo. |
-| Entorno | Implementado en aplicación y Compose | `DATABASE_URL`, sesión y Ollama se configuran por entorno; `.env.example`, `compose.yaml`, `pyproject.toml` y `uv.lock` contienen el contrato reproducible sin secretos reales. | Confirmar valores de despliegue y documentar la descarga del modelo de Ollama. |
+| PostgreSQL | Configuración versionada y comprobada desde clon limpio | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, clave definida solo en el entorno local, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Definir valores de despliegue, migraciones y datos iniciales oficiales. |
+| Entorno | Implementado y reproducido desde clon limpio | `DATABASE_URL`, sesión y Ollama se configuran por entorno; `.env.example`, `compose.yaml`, `pyproject.toml` y `uv.lock` contienen el contrato reproducible sin secretos reales. Jean verificó build limpio, API Docker, PostgreSQL temporal y Ollama del host. | Confirmar valores de despliegue y repetir localmente en el equipo de Cris solo si se exige evidencia propia. |
 | Nombres ORM | Confirmado e implementado | Clases `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`; tablas plurales en `snake_case`. | Coordinar cualquier cambio antes de modificar los modelos compartidos. |
 | Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `python -m app.db.init_db` crea las tablas explícitamente. | Migraciones, política de eliminación y datos curriculares iniciales. |
 | Pydantic | Implementado en los módulos actuales | Autenticación, catálogos, planificaciones y salida de IA usan esquemas Pydantic. | Confirmar la forma pedagógica definitiva de `Planning.content`. |
-| Endpoints | Integrados; rutas del núcleo confirmadas por Cris para el MVP | Salud; `POST /auth/login`; `POST /auth/logout`; `GET /auth/me`; catálogos públicos de solo lectura; `POST /generation`; y creación, listado, detalle y edición parcial bajo `/plans`. El flujo conjunto se comprobó con PostgreSQL real desechable y Ollama simulado. | Falta conformidad de Alejandra sobre el acceso público a catálogos, aprobación compartida del contrato pedagógico de edición y repetir una inferencia real en el entorno final. |
+| Endpoints | Integrados y comprobados mediante ASGI y HTTP Docker real | Salud; `POST /auth/login`; `POST /auth/logout`; `GET /auth/me`; catálogos públicos de solo lectura; `POST /generation`; y creación, listado, detalle y edición parcial bajo `/plans`. El flujo conjunto se comprobó con PostgreSQL real y una inferencia real documentada por Jean. | Falta conformidad de Alejandra sobre el acceso público a catálogos y aprobación compartida del contrato pedagógico de edición. |
 | Usuario autenticado | Implementación integrada, probada y confirmada por Cris para el MVP | `get_current_user` recupera al usuario por el ID de la cookie firmada y exige `is_active`. La cookie contiene solo el ID, es `HttpOnly`, `SameSite=Lax` y dura 8 horas. Generación y planes la utilizan. | Definir si el MVP necesita revocación en servidor y protección adicional frente a solicitudes entre sitios. |
 | `Planning` | Guardado, lectura y edición parcial implementados | Pertenece al usuario autenticado; las referencias curriculares son opcionales, se comprueba su coherencia y `content` acepta un objeto JSON validado. `PATCH /plans/{plan_id}` filtra por propietario, conserva campos omitidos y valida el estado final antes del commit. | Forma pedagógica definitiva, versión del contenido y reglas semánticas de edición. |
-| Intercambio con IA | Ruta y autenticación confirmadas por Cris; adaptación comprobada y todavía provisional | `POST /generation` es la ruta del MVP, exige sesión, valida entrada y salida con Pydantic y traduce timeout, indisponibilidad y respuesta inválida a errores controlados. El flujo integrado preservó el borrador completo dentro de `Planning.content`, con los IDs curriculares separados. | Alejandra debe confirmar el formato persistido y las reglas de edición; falta una inferencia real en el entorno final. |
+| Intercambio con IA | Ruta, autenticación y transporte real comprobados | `POST /generation` es la ruta del MVP, exige sesión, valida entrada y salida con Pydantic y traduce timeout, indisponibilidad y respuesta inválida a errores controlados. Jean comprobó una llamada real desde el backend Docker a `qwen2.5:3b`; el flujo preservó el borrador completo dentro de `Planning.content`, con los IDs curriculares separados. | Alejandra y el equipo deben confirmar el formato persistido y las reglas pedagógicas de edición. |
 
 La clave de desarrollo se define solo en el entorno local, no se versiona y no debe reutilizarse en producción.
 
@@ -53,6 +53,12 @@ La suite del módulo de planes aprobó **108 pruebas**; la suite normal aprobó 
 Esta integración confirma el comportamiento técnico de edición. El formato pedagógico definitivo de `Planning.content`, su versión, las reglas de coherencia semántica y la política pública de catálogos todavía requieren acuerdo explícito; la implementación por sí sola no los convierte en contratos aprobados.
 
 Alejandra añadió posteriormente una prueba PostgreSQL específica en `d16531a`. Cris la incorporó al runner en `1c6263f`; la regresión pasó a **226 pruebas aprobadas, 1 omitida y 0 bases temporales residuales**. La nueva evidencia refuerza persistencia y propiedad de `PATCH`, sin cerrar las decisiones pedagógicas pendientes.
+
+## Integración del cierre de infraestructura — 19 de octubre de 2026
+
+Cris integró `6a07f21` y `585944b` mediante `9bc002c`. La entrega de Jean documenta un clon HTTPS nuevo, entorno y credenciales temporales independientes, build sin caché, PostgreSQL nuevo, comunicación backend → Ollama y un flujo HTTP real de 28 solicitudes con una sola generación válida. La inferencia con `qwen2.5:3b` tardó 81.75 segundos en esa ejecución y no dejó recursos temporales del proyecto de prueba.
+
+Sobre el conjunto final, la suite en el contenedor oficial Python 3.12 aprobó **226 pruebas**, omitió únicamente la llamada real opcional y mantuvo la advertencia conocida de Starlette/httpx. El helper `run_docker_http.py` también se comprobó sintácticamente y conserva sus guardas de identidad para operar solo sobre un proyecto desechable.
 
 ## Sesión de base de datos
 

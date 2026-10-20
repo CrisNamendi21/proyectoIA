@@ -20,9 +20,9 @@ Pasos manuales:
 2. Si continúa el mensaje de bloqueo, revisar la notificación de Seguridad de Windows o solicitar al administrador que autorice o repare el intérprete administrado por uv. Mantener activa la protección; no deshabilitarla para ejecutar el proyecto.
 3. Confirmar que `uv run python --version` muestra Python 3.12.x y repetir `uv run pytest -q`.
 
-### 2. Activar Ollama y validar una generación real en su equipo — prioridad alta
+### 2. Reproducir Ollama en el equipo de Cris — prioridad media
 
-Jean ya registró una prueba real en su entorno. En el equipo de Cris, Ollama y el modelo continúan ausentes, por lo que esa evidencia todavía no se ha reproducido localmente.
+Jean ya verificó desde un clon limpio el backend Docker comunicándose con Ollama y una generación real con `qwen2.5:3b`. Esa evidencia ya está integrada; en el equipo de Cris, Ollama y el modelo continúan ausentes. Repetirla localmente aporta evidencia propia, pero ya no bloquea el cierre técnico compartido.
 
 Pasos:
 
@@ -66,9 +66,9 @@ Criterio para marcarla como terminada:
 - El push a `origin/main` termina correctamente.
 - El árbol queda limpio y el commit remoto coincide con el local.
 
-### 4. Reproducir el arranque desde un clon limpio — prioridad media
+### 4. Reproducir el arranque en el equipo de Cris — prioridad baja
 
-Cris y Jean deben comprobar juntos un clon nuevo con `.env` privado, Docker Desktop, PostgreSQL y Ollama activos. La revisión del viernes conservó el volumen existente y no sustituye esta comprobación.
+Jean ya comprobó un clon nuevo con `.env` privado, Docker Desktop, PostgreSQL y Ollama activos. Cris solo necesita repetirlo si el equipo exige una segunda evidencia local independiente.
 
 Criterio para marcarla como terminada:
 
@@ -91,12 +91,16 @@ Criterio para marcarla como terminada:
 ## Orden recomendado para continuar
 
 1. Restablecer la ejecución local de Python 3.12 con `uv`.
-2. Preparar Ollama en el equipo de Cris y ejecutar la prueba real una vez.
-3. Registrar el resultado y revisar el diff final.
-4. Revisar la nueva entrega de Jean sobre clon limpio y flujo Docker antes de considerarla integrada.
-5. Integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
-6. Cerrar con Alejandra y Jean los contratos de la edición integrada antes de ampliarla o cambiar seguridad compartida.
-7. Planificar catálogo real, migraciones y cualquier trabajo posterior al MVP.
+2. Cerrar con Alejandra y Jean los contratos pedagógicos, de catálogos y de seguridad que requieren decisión humana.
+3. Revisar el diff final e integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
+4. Instalar Ollama y repetir la inferencia en el equipo de Cris solo si se requiere evidencia local adicional.
+5. Planificar catálogo real, cuentas, migraciones y cualquier trabajo posterior al MVP.
+
+## Completado después del cierre inicial
+
+- Alejandra implementó y validó `PATCH /plans/{plan_id}`; Cris integró su prueba PostgreSQL en el runner.
+- Jean verificó un clon limpio, build Docker sin caché, PostgreSQL aislado, comunicación con Ollama y una generación HTTP real.
+- Cris integró ambas entregas y la suite final aprobó 226 pruebas sobre Python 3.12 y PostgreSQL real, sin bases temporales residuales.
 
 ## Reglas para estas tareas
 

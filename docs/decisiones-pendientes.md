@@ -6,7 +6,6 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
-| Alta | Verificación del entorno desde un clon limpio con Docker y Ollama activos. | Jean con Cris | `compose.yaml` y `.env.example` ya existen; falta demostrar el arranque completo en otra instalación. |
 | Alta | Necesidad de revocación de sesión en servidor y protección adicional frente a solicitudes entre sitios. | Equipo | Cris confirmó para el MVP la cookie firmada y el logout local; una copia previa de la cookie sigue válida hasta expirar. |
 | Alta | Contratos todavía no cerrados de los módulos funcionales. | Los tres | Cris confirmó `/generation`, la sesión y las rutas actuales; la edición técnica de planes ya está integrada, pero faltan su aprobación pedagógica y la conformidad de Alejandra sobre catálogos públicos. |
 | Alta | Aprobación compartida de `TeachingPlanDraft` como forma de `Planning.content`, vínculos curriculares y reglas de edición. | Alejandra con Cris y Jean | Cris confirmó su compatibilidad técnica; Alejandra debe aprobar el contrato del módulo de planes. |
@@ -60,6 +59,12 @@ Referencias técnicas para evaluar la propuesta: [hashing con Argon2 en FastAPI]
 - Las pruebas integradas usan PostgreSQL real y una base desechable con UUID por caso; nunca vacían ni reutilizan la base de desarrollo.
 - El runner verifica el catálogo antes y después de la suite y falla si deja bases temporales nuevas.
 - Ollama se simula en la regresión principal; una inferencia real se ejecuta por separado y de forma explícita cuando el entorno dispone del modelo.
+
+## Verificaciones técnicas cerradas después del 14 de octubre
+
+- Jean reprodujo el proyecto desde un clon HTTPS limpio con configuración temporal, build Docker sin caché, PostgreSQL aislado y Ollama real.
+- El flujo HTTP real del backend Docker completó autenticación, catálogos, una generación con `qwen2.5:3b`, guardado JSONB, propiedad e identidad posterior.
+- Cris integró la prueba PostgreSQL de edición de Alejandra y el cierre de infraestructura de Jean en `Cris-develop`.
 
 ## Diferencia de redacción resuelta
 

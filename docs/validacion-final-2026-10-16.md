@@ -216,3 +216,11 @@ Alejandra publicó después `d16531a` y `03ff006`. Cris los integró en `1c6263f
 - Consulta posterior del catálogo: **0 bases temporales** con los patrones de prueba del proyecto.
 
 Windows bloqueó el ejecutable Python 3.12 administrado por uv mediante Control de aplicaciones durante esta sesión. La comprobación oficial se trasladó al contenedor Python 3.12 sin cambiar dependencias; Cris debe restablecer la ejecución local antes de depender nuevamente de `uv run` en Windows.
+
+### Incorporación del cierre de Jean
+
+El 19 de octubre Cris integró `6a07f21` y `585944b` mediante `9bc002c`. Jean había comprobado desde un clon HTTPS limpio un entorno uv nuevo, build Docker sin caché, PostgreSQL temporal, comunicación del backend con Ollama y un flujo HTTP real de 28 solicitudes. La única generación con `qwen2.5:3b` fue válida y tardó 81.75 segundos; el entorno temporal fue retirado sin afectar el proyecto de desarrollo.
+
+Después del merge se ejecutó nuevamente la suite sobre el contenedor oficial Python 3.12 y PostgreSQL real: **226 pruebas aprobadas**, **1 omitida**, **1 advertencia conocida** y **0 bases temporales residuales**. La omisión conserva separada la inferencia real opcional de la regresión ordinaria; la evidencia real de Jean está documentada en [reproducibilidad desde clon limpio](reproducibilidad-clon-limpio-jean-2026-10-15.md).
+
+Con las entregas publicadas de Alejandra y Jean integradas, no quedan commits pendientes en sus ramas de trabajo revisadas. El trabajo restante corresponde al merge hacia `main`, decisiones humanas del equipo, datos oficiales y el bloqueo local de Python 3.12 en Windows.

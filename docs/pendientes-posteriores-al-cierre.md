@@ -89,7 +89,7 @@ Criterio para marcarla como terminada:
 
 | Pendiente | Responsable de coordinar | Resultado esperado |
 | --- | --- | --- |
-| Proporcionar el catálogo curricular y las cuentas docentes reales por canales apropiados. | Equipo y colegio | Datos aprobados, estrategia de carga y ausencia de datos personales en Git. |
+| Sustituir los datos internos si el proyecto llega a producción institucional. | Equipo y colegio | Catálogo institucional aprobado y cuentas reales tratadas fuera de Git; fuera del alcance del MVP actual. |
 | Adoptar migraciones para cambios futuros del esquema. | Equipo | Herramienta y procedimiento que sustituyan `create_all()` para evoluciones de base de datos. |
 | Decidir si se reescribe el historial que contenía una credencial antigua. | Equipo | Decisión coordinada; la credencial local ya fue rotada y dejó de ser válida. |
 
@@ -107,7 +107,8 @@ Criterio para marcarla como terminada:
 - Alejandra implementó y validó `PATCH /plans/{plan_id}`; Cris integró su prueba PostgreSQL en el runner.
 - Jean verificó un clon limpio, build Docker sin caché, PostgreSQL aislado, comunicación con Ollama y una generación HTTP real.
 - Cris integró ambas entregas y la suite final aprobó 226 pruebas sobre Python 3.12 y PostgreSQL real, sin bases temporales residuales.
-- Cris preparó la carga validada y repetible del catálogo aprobado, reforzó las contraseñas iniciales y documentó el procedimiento privado. La entrega y carga de los datos reales continúa a cargo del colegio y del equipo.
+- Cris preparó la carga validada y repetible del catálogo, reforzó las contraseñas iniciales y documentó el procedimiento privado.
+- Cris aprobó y cargó localmente un catálogo interno del MVP y tres cuentas técnicas; la repetición creó cero registros y conservó los hashes existentes.
 
 ## Reglas para estas tareas
 

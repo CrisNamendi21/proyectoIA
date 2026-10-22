@@ -1,10 +1,10 @@
 # Carga controlada de datos oficiales
 
-Estado al 22 de octubre de 2026. El repositorio prepara el procedimiento, pero no contiene todavía el catálogo aprobado ni la lista real de docentes.
+Estado al 22 de octubre de 2026. Cris aprobó y cargó un catálogo interno y tres cuentas técnicas para el entorno local del MVP. Los archivos fuente y las credenciales permanecen en `data/private/`, fuera de Git. La evidencia reproducible está en el [registro de carga](registro-carga-datos-mvp-2026-10-22.md).
 
 ## Decisión de alcance
 
-El MINED publica documentos curriculares y describe varias modalidades de primaria. Esa disponibilidad no identifica por sí sola la modalidad, versión o selección aplicable a Colegio Alfa. El colegio debe entregar o aprobar expresamente la fuente que se cargará. No se copiarán datos desde fotografías ni se inventarán grados, asignaturas, contenidos o cuentas para cerrar esta tarea.
+El MINED publica documentos curriculares y describe varias modalidades de primaria. Cris eligió para el MVP una selección interna de Matemática de quinto grado basada en una guía pública del MINED. La selección permite operar y probar el proyecto, pero no se atribuye al Colegio Alfa ni se presenta como un catálogo nacional completo. No se copiaron datos desde fotografías ni datos personales reales.
 
 Fuentes de referencia:
 
@@ -49,4 +49,4 @@ El mínimo de 15 caracteres sigue la recomendación vigente para contraseñas us
 
 ## Criterio de cierre operativo
 
-La etapa estará completada con datos reales cuando el colegio entregue y apruebe la fuente curricular y los identificadores docentes, un responsable ejecute ambos procedimientos, conserve la huella del archivo y compruebe la segunda ejecución. La implementación y sus pruebas pueden quedar terminadas antes; no equivalen a afirmar que los datos reales ya fueron cargados.
+La etapa 3 quedó cerrada para el MVP cuando un único operador validó y aplicó el catálogo, conservó su huella, repitió la carga sin crear duplicados y comprobó las tres cuentas técnicas. Una eventual sustitución por datos institucionales de producción queda fuera del alcance actual.

@@ -20,7 +20,7 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
 - arranque desde clon limpio y flujo HTTP real del backend Docker hacia Ollama verificados por Jean.
 
-Cris confirmó para el MVP la ruta `/generation`, la sesión actual, `TeachingPlanDraft` versión 1 y catálogos protegidos por sesión. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. El catálogo curricular real y las cuentas todavía deben ser proporcionados por el colegio; el repositorio ya contiene el procedimiento validado para cargarlos sin inventar datos.
+Cris confirmó para el MVP la ruta `/generation`, la sesión actual, `TeachingPlanDraft` versión 1 y catálogos protegidos por sesión. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. El entorno local ya contiene un catálogo interno aprobado por Cris y tres cuentas técnicas; sus archivos y credenciales permanecen fuera de Git.
 
 El alcance técnico del viernes está cerrado. Jean ya comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris integró esa evidencia; reproducirla en el equipo de Cris continúa como verificación local. El merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
@@ -110,7 +110,7 @@ docs/                   arquitectura, contratos y coordinación
 tests/                  pruebas aisladas y pruebas opcionales con PostgreSQL
 ```
 
-La carga efectiva del catálogo curricular y de las cuentas reales depende de datos aprobados que aún no se han entregado. No se deben inventar datos académicos para cerrar esa tarea.
+La carga interna del catálogo y las cuentas técnicas del MVP está registrada sin publicar credenciales. Una sustitución posterior por datos institucionales deberá conservar el mismo procedimiento controlado.
 
 ## Continuación del equipo
 
@@ -133,3 +133,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
 - [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)
 - [Carga controlada de datos oficiales](docs/carga-datos-oficiales.md)
+- [Registro de carga de datos del MVP](docs/registro-carga-datos-mvp-2026-10-22.md)

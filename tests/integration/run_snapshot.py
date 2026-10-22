@@ -85,6 +85,7 @@ def main() -> int:
             for filename in (
                 "conftest.py",
                 "test_ai_planning_flow.py",
+                "test_official_data_seed.py",
                 "test_patch_persistence_alejandra.py",
             ):
                 shutil.copy2(root / "tests" / "integration" / filename, target / filename)

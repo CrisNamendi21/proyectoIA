@@ -39,7 +39,9 @@ def test_seed_twice_preserves_active_and_inactive_accounts(monkeypatch: pytest.M
         monkeypatch.setattr("app.db.session.SessionLocal", sessionmaker(bind=test_engine))
         monkeypatch.setattr(seed_users.sys, "argv", ["seed_users", "docente_activo_prueba"])
         monkeypatch.setattr(seed_users.sys, "stdin", SimpleNamespace(isatty=lambda: True))
-        monkeypatch.setattr(seed_users.getpass, "getpass", lambda _: "clave-ficticia")
+        monkeypatch.setattr(
+            seed_users.getpass, "getpass", lambda _: "clave-ficticia-segura"
+        )
         with Session(test_engine) as session:
             session.add(
                 User(
@@ -58,12 +60,14 @@ def test_seed_twice_preserves_active_and_inactive_accounts(monkeypatch: pytest.M
             assert len(before) == 2
             assert before["docente_activo_prueba"][2] is True
             assert before["docente_inactivo_prueba"][2] is False
-            assert before["docente_activo_prueba"][1] != "clave-ficticia"
-            assert verify_password("clave-ficticia", before["docente_activo_prueba"][1])
+            assert before["docente_activo_prueba"][1] != "clave-ficticia-segura"
+            assert verify_password(
+                "clave-ficticia-segura", before["docente_activo_prueba"][1]
+            )
 
             assert seed_users.main() == 0
             assert not seed_users.create_user_if_missing(
-                session, "docente_inactivo_prueba", "otra-clave"
+                session, "docente_inactivo_prueba", "otra-clave-segura"
             )
 
             child_env = os.environ.copy()
@@ -91,3 +95,10 @@ def test_seed_twice_preserves_active_and_inactive_accounts(monkeypatch: pytest.M
                 connection.execute(text(f'DROP DATABASE IF EXISTS "{database_name}" WITH (FORCE)'))
         finally:
             admin_engine.dispose()
+
+
+def test_initial_password_requires_fifteen_characters() -> None:
+    with pytest.raises(ValueError, match="al menos 15 caracteres"):
+        seed_users.validate_initial_password("corta")
+
+    seed_users.validate_initial_password("123456789012345")

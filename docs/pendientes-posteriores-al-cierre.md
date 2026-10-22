@@ -107,6 +107,7 @@ Criterio para marcarla como terminada:
 - Alejandra implementó y validó `PATCH /plans/{plan_id}`; Cris integró su prueba PostgreSQL en el runner.
 - Jean verificó un clon limpio, build Docker sin caché, PostgreSQL aislado, comunicación con Ollama y una generación HTTP real.
 - Cris integró ambas entregas y la suite final aprobó 226 pruebas sobre Python 3.12 y PostgreSQL real, sin bases temporales residuales.
+- Cris preparó la carga validada y repetible del catálogo aprobado, reforzó las contraseñas iniciales y documentó el procedimiento privado. La entrega y carga de los datos reales continúa a cargo del colegio y del equipo.
 
 ## Reglas para estas tareas
 

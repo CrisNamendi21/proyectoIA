@@ -55,6 +55,6 @@ Jean encapsuló Ollama en `app/services/ai/`. La salida se valida con Pydantic y
 
 Alejandra implementó la consulta de catálogos y el guardado, listado y detalle de planificaciones sin duplicar modelos. La edición de planes aún debe comprobar propiedad antes de incorporarse.
 
-`create_app()` registra todos los routers actuales. Generación y planificaciones dependen de `get_current_user`; catálogos permanece como consulta pública. Los errores no controlados de SQLAlchemy se traducen en una respuesta genérica `503` sin detalles de conexión.
+`create_app()` registra todos los routers actuales. Generación, planificaciones y catálogos dependen de `get_current_user`. Los errores no controlados de SQLAlchemy se traducen en una respuesta genérica `503` sin detalles de conexión.
 
 Los contratos aún abiertos están en [decisiones pendientes](decisiones-pendientes.md), y los pasos de continuación están en [instrucciones para el equipo](instrucciones-equipo.md).

@@ -11,6 +11,16 @@ from app.core.validation import normalize_username
 from app.models import User
 
 
+MINIMUM_PASSWORD_LENGTH = 15
+
+
+def validate_initial_password(password: str) -> None:
+    if len(password) < MINIMUM_PASSWORD_LENGTH:
+        raise ValueError(
+            f"La contraseña inicial debe tener al menos {MINIMUM_PASSWORD_LENGTH} caracteres."
+        )
+
+
 def user_exists(session: Session, username: str) -> bool:
     return session.scalar(select(User.id).where(User.username == username)) is not None
 
@@ -19,8 +29,7 @@ def create_user_if_missing(session: Session, username: str, password: str) -> bo
     normalized = normalize_username(username)
     if user_exists(session, normalized):
         return False
-    if not password:
-        raise ValueError("La contraseña no puede estar vacía.")
+    validate_initial_password(password)
 
     session.add(
         User(
@@ -74,8 +83,13 @@ def main() -> int:
         print("Entrada cancelada.", file=sys.stderr)
         return 2
 
-    if not password or password != confirmation:
-        print("La contraseña está vacía o no coincide.", file=sys.stderr)
+    if password != confirmation:
+        print("Las contraseñas no coinciden.", file=sys.stderr)
+        return 2
+    try:
+        validate_initial_password(password)
+    except ValueError as error:
+        print(str(error), file=sys.stderr)
         return 2
 
     try:

@@ -43,7 +43,9 @@ def test_seed_login_rejection_and_later_identity(monkeypatch: pytest.MonkeyPatch
         monkeypatch.setattr("app.db.session.SessionLocal", sessionmaker(bind=test_engine))
         monkeypatch.setattr(seed_users.sys, "argv", ["seed_users", "docente_ficticio"])
         monkeypatch.setattr(seed_users.sys, "stdin", SimpleNamespace(isatty=lambda: True))
-        monkeypatch.setattr(seed_users.getpass, "getpass", lambda _: "clave-ficticia")
+        monkeypatch.setattr(
+            seed_users.getpass, "getpass", lambda _: "clave-ficticia-segura"
+        )
         assert seed_users.main() == 0
         assert seed_users.main() == 0
 
@@ -52,8 +54,8 @@ def test_seed_login_rejection_and_later_identity(monkeypatch: pytest.MonkeyPatch
             user = session.scalar(select(User).where(User.username == "docente_ficticio"))
             assert user is not None
             assert user.password_hash.startswith("$argon2id$")
-            assert "clave-ficticia" not in user.password_hash
-            assert verify_password("clave-ficticia", user.password_hash)
+            assert "clave-ficticia-segura" not in user.password_hash
+            assert verify_password("clave-ficticia-segura", user.password_hash)
             assert not verify_password("clave-incorrecta", user.password_hash)
 
         from app.main import create_app
@@ -69,12 +71,15 @@ def test_seed_login_rejection_and_later_identity(monkeypatch: pytest.MonkeyPatch
 
             login = client.post(
                 "/auth/login",
-                json={"username": "docente_ficticio", "password": "clave-ficticia"},
+                json={
+                    "username": "docente_ficticio",
+                    "password": "clave-ficticia-segura",
+                },
             )
             assert login.status_code == 200
             assert login.json() == {"id": user.id, "username": "docente_ficticio"}
             assert "password_hash" not in login.text
-            assert "clave-ficticia" not in login.text
+            assert "clave-ficticia-segura" not in login.text
             assert client.get("/__test/identity").json() == login.json()
 
             rejected = client.post(

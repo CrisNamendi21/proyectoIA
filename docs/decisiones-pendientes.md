@@ -7,7 +7,7 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 | Prioridad | Decisión por confirmar | Quién debe coordinarla | Motivo |
 | --- | --- | --- | --- |
 | Media | Catálogo curricular real y reglas de grado, asignatura y contenido. | Alejandra con el equipo y el colegio | Define datos iniciales y validaciones del dominio. |
-| Media | Datos curriculares y estrategia para cargarlos. | Equipo | Las cuentas tienen carga idempotente; todavía no existe un catálogo oficial que pueda versionarse o cargarse. |
+| Media | Entrega y aprobación de datos curriculares y cuentas reales. | Equipo y colegio | El mecanismo de carga repetible está implementado; faltan los datos oficiales que debe suministrar la institución. |
 | Media | Si “sección” será catálogo, columna, campo flexible o quedará fuera del MVP. | Equipo y colegio | Grado y sección son conceptos distintos. |
 | Media | Ficha oficial y campos pedagógicos obligatorios. | Colegio y equipo | Las fotografías son referencias, no la especificación final. |
 | Media | Estrategia de migraciones y política de eliminación entre entidades. | Equipo | `create_all()` sirve para la base inicial, pero no gestiona cambios de esquema. |
@@ -22,6 +22,7 @@ Alejandra no estaba disponible durante este cierre. Estas decisiones permiten co
 - Los catálogos son de solo lectura, pero requieren una sesión válida y una cuenta activa.
 - `POST /generation` mantiene el contrato de errores implementado y no persiste automáticamente su respuesta.
 - El MVP conserva la cookie firmada de ocho horas sin revocación individual en servidor. La revocación, la protección CSRF, HTTPS y la cookie `Secure` son requisitos antes de una puesta en producción real.
+- El catálogo aprobado se valida desde un JSON privado versionado por esquema, registra una huella SHA-256 y solo se aplica con `--apply`. Las cuentas se crean una a una y su contraseña inicial exige 15 caracteres. Ninguno de estos mecanismos implica que los datos reales ya hayan sido entregados.
 
 ## Propuesta provisional de autenticación — 11 de octubre de 2026
 

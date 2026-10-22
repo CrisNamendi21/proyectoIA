@@ -2,7 +2,7 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 19 de octubre de 2026
+## Estado al 22 de octubre de 2026
 
 La base técnica y los módulos principales están integrados en `Cris-develop`:
 
@@ -20,7 +20,7 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
 - arranque desde clon limpio y flujo HTTP real del backend Docker hacia Ollama verificados por Jean.
 
-Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. La edición técnica publicada por Alejandra protege la propiedad, conserva los campos omitidos y vuelve a validar las referencias curriculares; la aprobación compartida del formato pedagógico continúa pendiente. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+Cris confirmó para el MVP la ruta `/generation`, la sesión actual, `TeachingPlanDraft` versión 1 y catálogos protegidos por sesión. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. El catálogo curricular real y las cuentas todavía deben ser proporcionados por el colegio; el repositorio ya contiene el procedimiento validado para cargarlos sin inventar datos.
 
 El alcance técnico del viernes está cerrado. Jean ya comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris integró esa evidencia; reproducirla en el equipo de Cris continúa como verificación local. El merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
@@ -71,6 +71,7 @@ docker compose exec backend python -m app.db.seed_users <nombre_de_usuario>
 ```
 
 El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta ya existe, no modifica sus datos.
+La contraseña inicial debe tener al menos 15 caracteres. El procedimiento completo para cuentas y catálogos aprobados está en [carga controlada de datos oficiales](docs/carga-datos-oficiales.md).
 
 ## Iniciar la API
 
@@ -109,7 +110,7 @@ docs/                   arquitectura, contratos y coordinación
 tests/                  pruebas aisladas y pruebas opcionales con PostgreSQL
 ```
 
-La aprobación del contrato pedagógico de edición y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
+La carga efectiva del catálogo curricular y de las cuentas reales depende de datos aprobados que aún no se han entregado. No se deben inventar datos académicos para cerrar esa tarea.
 
 ## Continuación del equipo
 
@@ -131,3 +132,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Reproducibilidad desde clon limpio y flujo Docker real](docs/reproducibilidad-clon-limpio-jean-2026-10-15.md)
 - [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
 - [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)
+- [Carga controlada de datos oficiales](docs/carga-datos-oficiales.md)

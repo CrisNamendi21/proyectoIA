@@ -71,6 +71,8 @@ La etapa no incorpora Alembic, políticas de eliminación en cascada ni datos in
 
 `Grade` representa el grado académico. Una sección distingue grupos dentro de un grado y todavía no se modela como entidad ni columna. Hasta confirmar su diseño, puede conservarse dentro de `Planning.content`. No debe utilizarse `Grade` para mezclar ambos conceptos.
 
+La carga inicial de `Grade`, `Subject` y `CurriculumContent` usa un JSON aprobado y validado mediante `app.db.seed_catalogs`. El proceso conserva registros existentes y puede repetirse de forma secuencial. Como `CurriculumContent` todavía no tiene una restricción única compuesta, la etapa de migraciones debe añadirla antes de permitir importaciones concurrentes.
+
 ## Información aún necesaria
 
 Se requieren el catálogo curricular real y una ficha oficial de planificación. Cris fijó para el MVP `TeachingPlanDraft` con `schema_version=1` como esquema Pydantic del contenido JSONB; una ficha posterior deberá originar una nueva versión en lugar de cambiar silenciosamente la versión 1. Continúan pendientes la política de eliminación y una estrategia de migraciones. Las fotografías son referencias y no convierten campos como indicador, evaluación o fechas de clase en requisitos definitivos.

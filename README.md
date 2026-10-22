@@ -11,7 +11,7 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - SQLAlchemy 2 síncrono con Psycopg 3;
 - una sesión de base de datos por petición;
 - modelos `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`;
-- creación explícita de tablas con `init_db()`;
+- esquema versionado y actualizado con Alembic mediante `init_db()` o `alembic upgrade head`;
 - dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`;
 - sesión por cookie firmada, consulta de identidad y cierre de sesión;
 - rutas de generación y planificaciones protegidas con `get_current_user`;
@@ -54,7 +54,7 @@ En la configuración de Compose, `DATABASE_URL` usa `alfa-db` como host. `SESSIO
 
 La ejecución nativa de FastAPI en Windows necesita cambiar el host de PostgreSQL a `localhost` únicamente para ese proceso. La [guía de infraestructura](docs/infraestructura-jean.md#variables-reales) contiene el procedimiento que reutiliza la contraseña en memoria sin imprimirla ni guardarla en el historial de la terminal.
 
-## Crear las tablas
+## Actualizar el esquema
 
 Con los servicios de Compose disponibles, ejecuta:
 
@@ -62,7 +62,7 @@ Con los servicios de Compose disponibles, ejecuta:
 docker compose exec -T backend python -m app.db.init_db
 ```
 
-La inicialización usa `create_all()` y no reemplaza una estrategia posterior de migraciones.
+El comando aplica todas las revisiones Alembic pendientes hasta `head`. Una base nueva se crea desde la revisión inicial; una base existente conserva sus datos. El procedimiento de creación y revisión está en [migraciones](docs/migraciones.md).
 
 Para crear una cuenta docente sin guardar la contraseña en archivos o en el historial de la terminal:
 
@@ -134,3 +134,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)
 - [Carga controlada de datos oficiales](docs/carga-datos-oficiales.md)
 - [Registro de carga de datos del MVP](docs/registro-carga-datos-mvp-2026-10-22.md)
+- [Migraciones y revisión de cambios de esquema](docs/migraciones.md)

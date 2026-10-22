@@ -42,7 +42,7 @@ Relaciones: una asignatura tiene muchos contenidos curriculares y puede asociars
 | `id` | entero, clave primaria |
 | `grade_id` | entero, obligatorio, indexado y clave foránea a `grades.id` |
 | `subject_id` | entero, obligatorio, indexado y clave foránea a `subjects.id` |
-| `description` | texto, obligatorio |
+| `description` | texto, obligatorio; único dentro de la combinación de grado y asignatura |
 
 Relaciones: pertenece a un grado y una asignatura; puede asociarse con muchas planificaciones.
 
@@ -65,14 +65,14 @@ Relaciones: pertenece obligatoriamente a un usuario y puede vincularse con un gr
 
 SQLAlchemy creó las cinco tablas en PostgreSQL y se comprobaron seis claves foráneas: dos en `curriculum_contents` y cuatro en `plannings`. Las relaciones son bidireccionales mediante `back_populates`.
 
-La etapa no incorpora Alembic, políticas de eliminación en cascada ni datos iniciales. Estos puntos requieren un acuerdo posterior.
+Alembic versiona el esquema desde la revisión inicial. La política de eliminación en cascada continúa pendiente.
 
 ## Grado y sección
 
 `Grade` representa el grado académico. Una sección distingue grupos dentro de un grado y todavía no se modela como entidad ni columna. Hasta confirmar su diseño, puede conservarse dentro de `Planning.content`. No debe utilizarse `Grade` para mezclar ambos conceptos.
 
-La carga inicial de `Grade`, `Subject` y `CurriculumContent` usa un JSON aprobado y validado mediante `app.db.seed_catalogs`. El proceso conserva registros existentes y puede repetirse de forma secuencial. Como `CurriculumContent` todavía no tiene una restricción única compuesta, la etapa de migraciones debe añadirla antes de permitir importaciones concurrentes.
+La carga inicial de `Grade`, `Subject` y `CurriculumContent` usa un JSON aprobado y validado mediante `app.db.seed_catalogs`. La restricción `uq_curriculum_contents_grade_subject_description` impide que dos procesos conserven el mismo contenido para una combinación de grado y asignatura.
 
 ## Información aún necesaria
 
-Se requieren el catálogo curricular real y una ficha oficial de planificación. Cris fijó para el MVP `TeachingPlanDraft` con `schema_version=1` como esquema Pydantic del contenido JSONB; una ficha posterior deberá originar una nueva versión en lugar de cambiar silenciosamente la versión 1. Continúan pendientes la política de eliminación y una estrategia de migraciones. Las fotografías son referencias y no convierten campos como indicador, evaluación o fechas de clase en requisitos definitivos.
+Se requieren una ficha oficial de planificación si el proyecto pasa a uso institucional. Cris fijó para el MVP `TeachingPlanDraft` con `schema_version=1` como esquema Pydantic del contenido JSONB; una ficha posterior deberá originar una nueva versión en lugar de cambiar silenciosamente la versión 1. Continúa pendiente la política de eliminación. Las fotografías son referencias y no convierten campos como indicador, evaluación o fechas de clase en requisitos definitivos.

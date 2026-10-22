@@ -1,21 +1,23 @@
 import sys
+from pathlib import Path
 
-from sqlalchemy.exc import SQLAlchemyError
+from alembic import command
+from alembic.config import Config
 
-from app.db.base import Base
-from app.db.session import engine
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def init_db() -> None:
-    import app.models
-
-    Base.metadata.create_all(bind=engine)
+    """Actualiza la base hasta la última revisión de Alembic."""
+    config = Config(ROOT / "alembic.ini")
+    command.upgrade(config, "head")
 
 
 def main() -> int:
     try:
         init_db()
-    except SQLAlchemyError:
+    except Exception:
         print("No se pudo inicializar la base de datos.", file=sys.stderr)
         return 1
     print("Base de datos inicializada.")

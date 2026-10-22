@@ -90,7 +90,6 @@ Criterio para marcarla como terminada:
 | Pendiente | Responsable de coordinar | Resultado esperado |
 | --- | --- | --- |
 | Sustituir los datos internos si el proyecto llega a producción institucional. | Equipo y colegio | Catálogo institucional aprobado y cuentas reales tratadas fuera de Git; fuera del alcance del MVP actual. |
-| Adoptar migraciones para cambios futuros del esquema. | Equipo | Herramienta y procedimiento que sustituyan `create_all()` para evoluciones de base de datos. |
 | Decidir si se reescribe el historial que contenía una credencial antigua. | Equipo | Decisión coordinada; la credencial local ya fue rotada y dejó de ser válida. |
 
 ## Orden recomendado para continuar
@@ -109,6 +108,7 @@ Criterio para marcarla como terminada:
 - Cris integró ambas entregas y la suite final aprobó 226 pruebas sobre Python 3.12 y PostgreSQL real, sin bases temporales residuales.
 - Cris preparó la carga validada y repetible del catálogo, reforzó las contraseñas iniciales y documentó el procedimiento privado.
 - Cris aprobó y cargó localmente un catálogo interno del MVP y tres cuentas técnicas; la repetición creó cero registros y conservó los hashes existentes.
+- Cris adoptó Alembic, creó la revisión inicial, agregó unicidad curricular y automatizó upgrade, downgrade y detección de cambios sin migración.
 
 ## Reglas para estas tareas
 

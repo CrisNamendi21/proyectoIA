@@ -9,7 +9,7 @@ Esta página distingue lo implementado y comprobado de los acuerdos que todavía
 | PostgreSQL | Configuración versionada y comprobada desde clon limpio | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, clave definida solo en el entorno local, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Definir valores de despliegue, migraciones y datos iniciales oficiales. |
 | Entorno | Implementado y reproducido desde clon limpio | `DATABASE_URL`, sesión y Ollama se configuran por entorno; `.env.example`, `compose.yaml`, `pyproject.toml` y `uv.lock` contienen el contrato reproducible sin secretos reales. Jean verificó build limpio, API Docker, PostgreSQL temporal y Ollama del host. | Confirmar valores de despliegue y repetir localmente en el equipo de Cris solo si se exige evidencia propia. |
 | Nombres ORM | Confirmado e implementado | Clases `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`; tablas plurales en `snake_case`. | Coordinar cualquier cambio antes de modificar los modelos compartidos. |
-| Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `python -m app.db.init_db` crea las tablas explícitamente. | Migraciones, política de eliminación y entrega de datos curriculares oficiales. |
+| Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `python -m app.db.init_db` aplica la cabeza de Alembic. | Política de eliminación y cualquier evolución futura del modelo. |
 | Datos iniciales | Catálogo interno y tres cuentas técnicas cargados localmente | `seed_catalogs` valida fuente, versión, aprobación, estructura y huella antes de escribir; `seed_users` crea cuentas individuales con contraseña inicial de al menos 15 caracteres. Ambos conservaron registros existentes en la segunda ejecución. | La migración debe añadir unicidad al contenido antes de permitir cargas concurrentes. Los datos institucionales de producción quedan fuera del alcance actual. |
 | Pydantic | Implementado y aprobado por Cris para el MVP | Autenticación, catálogos, planificaciones y salida de IA usan esquemas Pydantic. `Planning.content` cumple `TeachingPlanDraft` versión 1 y rechaza campos desconocidos. | Una ficha pedagógica oficial podría exigir una versión futura. |
 | Endpoints | Integrados y comprobados mediante ASGI y HTTP Docker real | Salud; `POST /auth/login`; `POST /auth/logout`; `GET /auth/me`; catálogos de solo lectura con sesión; `POST /generation`; y creación, listado, detalle y edición parcial bajo `/plans`. | Revisar cualquier cambio cuando Alejandra esté disponible, sin tratar su ausencia como aprobación personal. |
@@ -68,7 +68,7 @@ Sobre el conjunto final, la suite en el contenedor oficial Python 3.12 aprobó *
 - La dependencia cierra la sesión al finalizar la petición.
 - Los servicios que escriban datos deben controlar `commit` y `rollback` explícitamente.
 - Los modelos no abren conexiones ni crean tablas al importarse.
-- La creación de tablas ocurre únicamente cuando se invoca `init_db()`.
+- La creación y evolución de tablas ocurre mediante revisiones Alembic; `init_db()` aplica `upgrade head`.
 
 ## Integración entre módulos
 

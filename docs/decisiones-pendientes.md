@@ -8,7 +8,7 @@ Este registro requiere acuerdos explícitos del equipo. Las propuestas técnicas
 | --- | --- | --- | --- |
 | Media | Si “sección” será catálogo, columna, campo flexible o quedará fuera del MVP. | Equipo y colegio | Grado y sección son conceptos distintos. |
 | Media | Ficha oficial y campos pedagógicos obligatorios. | Colegio y equipo | Las fotografías son referencias, no la especificación final. |
-| Media | Estrategia de migraciones y política de eliminación entre entidades. | Equipo | `create_all()` sirve para la base inicial, pero no gestiona cambios de esquema. |
+| Media | Política de eliminación entre entidades. | Equipo | Alembic ya gestiona la evolución del esquema; todavía debe decidirse el comportamiento de borrado y cascadas. |
 
 ## Decisiones cerradas por Cris para el MVP — 19 de octubre de 2026
 

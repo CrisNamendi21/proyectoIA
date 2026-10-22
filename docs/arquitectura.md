@@ -23,7 +23,8 @@ app/
   db/
     base.py               DeclarativeBase — implementado, Cris
     session.py            engine, SessionLocal y dependencia — implementado, Cris
-    init_db.py            creación explícita y comando de inicialización — implementado, Cris
+    init_db.py            actualización a la cabeza de Alembic — implementado, Cris
+    migrations/           historial versionado del esquema PostgreSQL — implementado, Cris
   models/                 cinco entidades compartidas — implementado, Cris
   schemas/                autenticación, catálogos, planes y salida de IA
   services/
@@ -41,7 +42,7 @@ PostgreSQL conserva usuarios, catálogos y relaciones mediante columnas relacion
 
 La aplicación crea un solo `engine` y un solo `sessionmaker`. `get_db_session()` entrega una sesión independiente por petición y la cierra al finalizar. Las operaciones futuras que escriban datos deben controlar `commit` y `rollback` de forma explícita.
 
-`init_db()` importa los modelos y ejecuta `Base.metadata.create_all()`. El 10 de octubre se verificaron la conexión mediante `SELECT 1`, las cinco tablas y sus seis claves foráneas en PostgreSQL. Alembic no forma parte de esta etapa.
+`init_db()` aplica `alembic upgrade head`. Alembic conserva el historial del esquema, obtiene la URL desde la configuración de la aplicación y compara sus revisiones con `Base.metadata`. `create_all()` queda limitado a fixtures desechables de pruebas.
 
 ## Configuración e infraestructura
 

@@ -1,7 +1,7 @@
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import ForeignKey, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -14,6 +14,14 @@ if TYPE_CHECKING:
 
 class CurriculumContent(Base):
     __tablename__ = "curriculum_contents"
+    __table_args__ = (
+        UniqueConstraint(
+            "grade_id",
+            "subject_id",
+            "description",
+            name="uq_curriculum_contents_grade_subject_description",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     grade_id: Mapped[int] = mapped_column(ForeignKey("grades.id"), index=True)

@@ -29,41 +29,11 @@ Resultado verificado:
 - `uv run python tests/integration/run_snapshot.py --ref HEAD`: 226 aprobadas, 1 omitida y 1 advertencia sobre PostgreSQL real.
 - El runner integrado confirmó código de salida 0, catálogo temporal intacto y 0 bases residuales nuevas.
 
-### 2. Reproducir Ollama en el equipo de Cris — prioridad media
+### 2. Reproducir Ollama en el equipo de Cris — completado el 23 de octubre de 2026
 
-Jean ya verificó desde un clon limpio el backend Docker comunicándose con Ollama y una generación real con `qwen2.5:3b`. Esa evidencia ya está integrada; en el equipo de Cris, Ollama y el modelo continúan ausentes. Repetirla localmente aporta evidencia propia, pero ya no bloquea el cierre técnico compartido.
+Cris instaló Ollama 0.40.9 y descargó `qwen2.5:3b`. La API local respondió, el backend Docker encontró el modelo mediante `host.docker.internal` y la única prueba real aprobó generación, validación Pydantic, guardado JSONB, propiedad, consulta y logout.
 
-Pasos:
-
-1. Instalar o abrir Ollama en Windows.
-2. Descargar y comprobar el modelo configurado:
-
-   ```powershell
-   ollama --version
-   ollama pull qwen2.5:3b
-   ollama list
-   Invoke-RestMethod http://localhost:11434/api/tags
-   ```
-
-3. Confirmar en el `.env` local, sin mostrarlo ni versionarlo, estos valores ya documentados en `.env.example`:
-   - `OLLAMA_BASE_URL=http://host.docker.internal:11434` para el backend en Docker.
-   - `OLLAMA_MODEL=qwen2.5:3b`.
-   - `OLLAMA_TIMEOUT_SECONDS=120`, ajustándolo localmente solo si una medición real lo justifica.
-4. Reconstruir o recrear el backend para que reciba la configuración vigente.
-5. Comprobar la comunicación desde el contenedor con el procedimiento de [arranque y comprobaciones](infraestructura-jean.md#arranque-y-comprobaciones).
-6. Ejecutar una sola prueba real y aislada:
-
-   ```powershell
-   uv run python tests/integration/run_snapshot.py --ref HEAD --real-ollama
-   ```
-
-Criterio para marcarla como terminada:
-
-- Ollama responde en `localhost:11434` y el modelo exacto aparece disponible.
-- El backend puede comunicarse con Ollama.
-- La prueba real aprueba generación, validación Pydantic, guardado JSONB, propiedad, lectura y logout.
-- El runner confirma que no dejó bases temporales.
-- El resultado y la duración se agregan a la validación final sin guardar prompts privados ni credenciales.
+La medición del flujo fue de **62.56 segundos**. El runner terminó con 1 prueba aprobada, las migraciones correctas, el catálogo temporal sin cambios y 0 bases residuales nuevas. La evidencia completa está en [verificación de Ollama en el equipo de Cris](verificacion-ollama-cris-2026-10-23.md).
 
 ### 3. Integrar `Cris-develop` en `main` — prioridad alta
 
@@ -109,6 +79,7 @@ Criterio para marcarla como terminada:
 - Cris aprobó y cargó localmente un catálogo interno del MVP y tres cuentas técnicas; la repetición creó cero registros y conservó los hashes existentes.
 - Cris adoptó Alembic, creó la revisión inicial, agregó unicidad curricular y automatizó upgrade, downgrade y detección de cambios sin migración.
 - Cris confirmó nuevamente la revocación de la credencial antigua, auditó todas las referencias, creó un respaldo privado y decidió conservar el historial sin forzar ramas ni clones.
+- Cris instaló Ollama 0.40.9, descargó `qwen2.5:3b` y reprodujo localmente una generación real completa en 62.56 segundos, sin bases temporales residuales.
 
 ## Reglas para estas tareas
 

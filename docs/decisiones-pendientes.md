@@ -72,6 +72,7 @@ Referencias técnicas para evaluar la propuesta: [hashing con Argon2 en FastAPI]
 - Jean reprodujo el proyecto desde un clon HTTPS limpio con configuración temporal, build Docker sin caché, PostgreSQL aislado y Ollama real.
 - El flujo HTTP real del backend Docker completó autenticación, catálogos, una generación con `qwen2.5:3b`, guardado JSONB, propiedad e identidad posterior.
 - Cris integró la prueba PostgreSQL de edición de Alejandra y el cierre de infraestructura de Jean en `Cris-develop`.
+- Cris reprodujo después el flujo en su propio equipo: Ollama 0.40.9 y `qwen2.5:3b` fueron accesibles desde el backend Docker; una generación real validada, guardada y consultada terminó en 62.56 segundos sin bases temporales residuales.
 
 ## Diferencia de redacción resuelta
 

@@ -22,7 +22,7 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 
 Cris confirmó para el MVP la ruta `/generation`, la sesión actual, `TeachingPlanDraft` versión 1 y catálogos protegidos por sesión. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. El entorno local ya contiene un catálogo interno aprobado por Cris y tres cuentas técnicas; sus archivos y credenciales permanecen fuera de Git.
 
-El alcance técnico del viernes está cerrado. Jean ya comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris integró esa evidencia; reproducirla en el equipo de Cris continúa como verificación local. El merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
+El alcance técnico del viernes está cerrado. Jean comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris la reprodujo después en su propio equipo. El merge final hacia `main` y los demás trabajos posteriores están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
 ## Requisitos
 
@@ -136,3 +136,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Registro de carga de datos del MVP](docs/registro-carga-datos-mvp-2026-10-22.md)
 - [Migraciones y revisión de cambios de esquema](docs/migraciones.md)
 - [Resolución de la credencial histórica](docs/resolucion-credencial-historica-2026-10-23.md)
+- [Verificación de Ollama en el equipo de Cris](docs/verificacion-ollama-cris-2026-10-23.md)

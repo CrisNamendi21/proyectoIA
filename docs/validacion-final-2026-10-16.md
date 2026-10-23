@@ -224,3 +224,9 @@ El 19 de octubre Cris integró `6a07f21` y `585944b` mediante `9bc002c`. Jean ha
 Después del merge se ejecutó nuevamente la suite sobre el contenedor oficial Python 3.12 y PostgreSQL real: **226 pruebas aprobadas**, **1 omitida**, **1 advertencia conocida** y **0 bases temporales residuales**. La omisión conserva separada la inferencia real opcional de la regresión ordinaria; la evidencia real de Jean está documentada en [reproducibilidad desde clon limpio](reproducibilidad-clon-limpio-jean-2026-10-15.md).
 
 Con las entregas publicadas de Alejandra y Jean integradas, no quedan commits pendientes en sus ramas de trabajo revisadas. El trabajo restante corresponde al merge hacia `main`, decisiones humanas del equipo, datos oficiales y el bloqueo local de Python 3.12 en Windows.
+
+## Actualización del 23 de octubre — Ollama local de Cris
+
+Las observaciones anteriores sobre la ausencia de Ollama describen el estado del 16 de octubre y quedaron resueltas posteriormente. Cris instaló Ollama 0.40.9, descargó `qwen2.5:3b` y confirmó la API tanto desde Windows como desde el contenedor del backend.
+
+Se ejecutó una sola prueba real sobre el commit `71726fc`: generación, validación Pydantic, guardado JSONB, propiedad, consulta y logout aprobaron en 62.56 segundos. El runner terminó con 1 prueba aprobada, las comprobaciones de migración correctas y 0 bases temporales nuevas. La ejecución completa está registrada en [verificación de Ollama en el equipo de Cris](verificacion-ollama-cris-2026-10-23.md).

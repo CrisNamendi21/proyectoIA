@@ -35,15 +35,9 @@ Cris instaló Ollama 0.40.9 y descargó `qwen2.5:3b`. La API local respondió, e
 
 La medición del flujo fue de **62.56 segundos**. El runner terminó con 1 prueba aprobada, las migraciones correctas, el catálogo temporal sin cambios y 0 bases residuales nuevas. La evidencia completa está en [verificación de Ollama en el equipo de Cris](verificacion-ollama-cris-2026-10-23.md).
 
-### 3. Integrar `Cris-develop` en `main` — prioridad alta
+### 3. Integrar `Cris-develop` en `main` — completado el 23 de octubre de 2026
 
-La simulación del módulo 6 terminó sin conflictos. El merge real continúa pendiente y debe ejecutarse después de la revisión final del equipo y, si Cris exige evidencia propia de IA, después de la prueba anterior.
-
-Criterio para marcarla como terminada:
-
-- `main` contiene el cierre publicado de `Cris-develop`.
-- El push a `origin/main` termina correctamente.
-- El árbol queda limpio y el commit remoto coincide con el local.
+La revisión final aprobó la suite aislada, el runner con PostgreSQL, las migraciones, el flujo real de Ollama y el control de secretos. Cris autorizó la integración explícita mediante `merge --no-ff`; `main` recibió el estado completo de `Cris-develop` y ambas ramas fueron publicadas.
 
 ### 4. Reproducir el arranque en el equipo de Cris — prioridad baja
 
@@ -61,13 +55,13 @@ Criterio para marcarla como terminada:
 | --- | --- | --- |
 | Sustituir los datos internos si el proyecto llega a producción institucional. | Equipo y colegio | Catálogo institucional aprobado y cuentas reales tratadas fuera de Git; fuera del alcance del MVP actual. |
 
-## Orden recomendado para continuar
+## Orden aplicado
 
-1. Restablecer la ejecución local de Python 3.12 con `uv`.
-2. Cerrar con Alejandra y Jean los contratos pedagógicos, de catálogos y de seguridad que requieren decisión humana.
-3. Revisar el diff final e integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
-4. Instalar Ollama y repetir la inferencia en el equipo de Cris solo si se requiere evidencia local adicional.
-5. Planificar catálogo real, cuentas, migraciones y cualquier trabajo posterior al MVP.
+1. Se restableció la ejecución local de Python 3.12 con `uv`.
+2. Se cerraron los contratos funcionales necesarios para el MVP.
+3. Se instaló Ollama y se reprodujo la inferencia real en el equipo de Cris.
+4. Se revisó el diff final y se integró `Cris-develop` en `main` con autorización de Cris.
+5. Los datos institucionales reales y cualquier ampliación posterior permanecen fuera del alcance del MVP.
 
 ## Completado después del cierre inicial
 

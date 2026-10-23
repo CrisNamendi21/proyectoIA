@@ -137,3 +137,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Migraciones y revisión de cambios de esquema](docs/migraciones.md)
 - [Resolución de la credencial histórica](docs/resolucion-credencial-historica-2026-10-23.md)
 - [Verificación de Ollama en el equipo de Cris](docs/verificacion-ollama-cris-2026-10-23.md)
+- [Cierre final del MVP](docs/cierre-final-2026-10-23.md)

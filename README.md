@@ -135,3 +135,4 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Carga controlada de datos oficiales](docs/carga-datos-oficiales.md)
 - [Registro de carga de datos del MVP](docs/registro-carga-datos-mvp-2026-10-22.md)
 - [Migraciones y revisión de cambios de esquema](docs/migraciones.md)
+- [Resolución de la credencial histórica](docs/resolucion-credencial-historica-2026-10-23.md)

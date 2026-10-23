@@ -90,7 +90,6 @@ Criterio para marcarla como terminada:
 | Pendiente | Responsable de coordinar | Resultado esperado |
 | --- | --- | --- |
 | Sustituir los datos internos si el proyecto llega a producción institucional. | Equipo y colegio | Catálogo institucional aprobado y cuentas reales tratadas fuera de Git; fuera del alcance del MVP actual. |
-| Decidir si se reescribe el historial que contenía una credencial antigua. | Equipo | Decisión coordinada; la credencial local ya fue rotada y dejó de ser válida. |
 
 ## Orden recomendado para continuar
 
@@ -109,6 +108,7 @@ Criterio para marcarla como terminada:
 - Cris preparó la carga validada y repetible del catálogo, reforzó las contraseñas iniciales y documentó el procedimiento privado.
 - Cris aprobó y cargó localmente un catálogo interno del MVP y tres cuentas técnicas; la repetición creó cero registros y conservó los hashes existentes.
 - Cris adoptó Alembic, creó la revisión inicial, agregó unicidad curricular y automatizó upgrade, downgrade y detección de cambios sin migración.
+- Cris confirmó nuevamente la revocación de la credencial antigua, auditó todas las referencias, creó un respaldo privado y decidió conservar el historial sin forzar ramas ni clones.
 
 ## Reglas para estas tareas
 

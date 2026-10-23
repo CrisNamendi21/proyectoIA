@@ -2,6 +2,10 @@
 
 Estas instrucciones parten de la base técnica disponible al finalizar el sábado 10 de octubre de 2026.
 
+## Aviso de sincronización — 23 de octubre de 2026
+
+La [credencial histórica](resolucion-credencial-historica-2026-10-23.md) está revocada y el equipo decidió conservar el historial. No se debe ejecutar ningún `push --force`, rebase masivo o reclonado por este incidente. Basta con actualizar `Cris-develop` mediante `git fetch --all --prune` y `git pull --ff-only origin Cris-develop`. Los archivos privados siguen fuera de Git.
+
 ## Preparación común
 
 1. Actualizar la rama de integración y crear la rama de trabajo correspondiente:

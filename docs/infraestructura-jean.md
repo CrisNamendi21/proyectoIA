@@ -142,13 +142,13 @@ Esperado: `alfa-db` healthy, backend running y `{"status":"ok"}`.
 La imagen se instala con `uv sync --frozen --no-dev --no-install-project`; las pruebas se ejecutan con uv en Windows, no dentro de esa imagen.
 `/health` confirma la aplicación; no comprueba la base ni el modelo por sí solo.
 
-Solo durante la preparación inicial, crear tablas explícitamente con el comando compatible con ambas revisiones del núcleo:
+Aplicar las migraciones pendientes durante la preparación inicial y después de recibir cambios de esquema:
 
 ```powershell
 docker compose exec -T backend python -c "from app.db.init_db import init_db; init_db()"
 ```
 
-`create_all()` no borra datos ni migra cambios de esquema. No ejecutarlo como rutina diaria ni usarlo para resolver incompatibilidades de columnas.
+El comando ejecuta `alembic upgrade head`, conserva los datos compatibles y registra la revisión aplicada. La [guía de migraciones](migraciones.md) define cómo generar y revisar cambios posteriores.
 Las cuentas se cargan explícitamente, sin contraseñas en la línea de comandos:
 
 ```powershell
@@ -156,7 +156,7 @@ docker compose exec backend python -m app.db.seed_users nombre_docente
 ```
 
 Es interactivo: no añadir `-T` al comando de cuenta. No crear cuentas reales de otro integrante durante las comprobaciones.
-El catálogo oficial sigue pendiente; no hay un comando de carga curricular acordado.
+La [carga controlada](carga-datos-oficiales.md) documenta el catálogo interno del MVP y cómo reponerlo.
 
 Conexión real del backend a PostgreSQL, sin escritura:
 
@@ -294,9 +294,9 @@ docker compose --project-name alfa-clean-<sufijo> -f compose.yaml -f compose.cle
 ```
 
 Los marcadores `<sufijo>` son nombres a sustituir, no comandos listos para ejecutar.
-Crear tablas con el módulo `app.db.init_db`. Para una comprobación automatizada, los docentes ficticios pueden crearse con la función existente
+Aplicar la cabeza de Alembic con el módulo `app.db.init_db`. Para una comprobación automatizada, los docentes ficticios pueden crearse con la función existente
 `app.db.seed_users.create_user_if_missing`; su CLI interactiva sigue siendo el procedimiento para configurar cuentas manualmente.
-El catálogo de la prueba debe ser una fixture sintética dentro de la base temporal: no existe una carga oficial del colegio.
+El catálogo de la prueba debe seguir siendo una fixture sintética dentro de la base temporal y no reutilizar el catálogo local del MVP.
 
 Las pruebas ASGI existentes se ejecutan con el Python de la `.venv` nueva y la URL administrativa de la instancia temporal apuntando a `postgres`.
 El flujo HTTP se ejecuta con `tests/integration/run_docker_http.py --manifest <archivo_json_temporal>`.

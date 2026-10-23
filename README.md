@@ -2,7 +2,7 @@
 
 Backend universitario para apoyar a docentes en la creación, revisión, guardado y consulta de planificaciones didácticas. El MVP se desarrollará del **10 al 16 de octubre de 2026**.
 
-## Estado al 19 de octubre de 2026
+## Estado al 22 de octubre de 2026
 
 La base técnica y los módulos principales están integrados en `Cris-develop`:
 
@@ -11,7 +11,7 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - SQLAlchemy 2 síncrono con Psycopg 3;
 - una sesión de base de datos por petición;
 - modelos `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`;
-- creación explícita de tablas con `init_db()`;
+- esquema versionado y actualizado con Alembic mediante `init_db()` o `alembic upgrade head`;
 - dependencias administradas con `uv`, `pyproject.toml` y `uv.lock`;
 - sesión por cookie firmada, consulta de identidad y cierre de sesión;
 - rutas de generación y planificaciones protegidas con `get_current_user`;
@@ -20,9 +20,9 @@ La base técnica y los módulos principales están integrados en `Cris-develop`:
 - flujo autenticación → catálogos → generación → revisión simulada → guardado → historial comprobado con PostgreSQL desechable.
 - arranque desde clon limpio y flujo HTTP real del backend Docker hacia Ollama verificados por Jean.
 
-Cris confirmó para el MVP la ruta `/generation` y la sesión actual; la revocación en servidor sigue pendiente del equipo. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. La edición técnica publicada por Alejandra protege la propiedad, conserva los campos omitidos y vuelve a validar las referencias curriculares; la aprobación compartida del formato pedagógico continúa pendiente. El catálogo curricular real y sus datos iniciales aún deben ser proporcionados y acordados.
+Cris confirmó para el MVP la ruta `/generation`, la sesión actual, `TeachingPlanDraft` versión 1 y catálogos protegidos por sesión. Las planificaciones se pueden guardar, listar, consultar y editar mediante `PATCH /plans/{plan_id}`. El entorno local ya contiene un catálogo interno aprobado por Cris y tres cuentas técnicas; sus archivos y credenciales permanecen fuera de Git.
 
-El alcance técnico del viernes está cerrado. Jean ya comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris integró esa evidencia; reproducirla en el equipo de Cris continúa como verificación local. El merge final hacia `main` y los acuerdos pendientes del equipo están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
+El alcance técnico del viernes está cerrado. Jean comprobó una inferencia real con `qwen2.5:3b` desde un clon limpio y Cris la reprodujo después en su propio equipo. El merge final hacia `main` y los demás trabajos posteriores están enumerados en [pendientes posteriores al cierre](docs/pendientes-posteriores-al-cierre.md).
 
 ## Requisitos
 
@@ -54,7 +54,7 @@ En la configuración de Compose, `DATABASE_URL` usa `alfa-db` como host. `SESSIO
 
 La ejecución nativa de FastAPI en Windows necesita cambiar el host de PostgreSQL a `localhost` únicamente para ese proceso. La [guía de infraestructura](docs/infraestructura-jean.md#variables-reales) contiene el procedimiento que reutiliza la contraseña en memoria sin imprimirla ni guardarla en el historial de la terminal.
 
-## Crear las tablas
+## Actualizar el esquema
 
 Con los servicios de Compose disponibles, ejecuta:
 
@@ -62,7 +62,7 @@ Con los servicios de Compose disponibles, ejecuta:
 docker compose exec -T backend python -m app.db.init_db
 ```
 
-La inicialización usa `create_all()` y no reemplaza una estrategia posterior de migraciones.
+El comando aplica todas las revisiones Alembic pendientes hasta `head`. Una base nueva se crea desde la revisión inicial; una base existente conserva sus datos. El procedimiento de creación y revisión está en [migraciones](docs/migraciones.md).
 
 Para crear una cuenta docente sin guardar la contraseña en archivos o en el historial de la terminal:
 
@@ -71,6 +71,7 @@ docker compose exec backend python -m app.db.seed_users <nombre_de_usuario>
 ```
 
 El comando solicita y confirma la contraseña de forma interactiva. Si la cuenta ya existe, no modifica sus datos.
+La contraseña inicial debe tener al menos 15 caracteres. El procedimiento completo para cuentas y catálogos aprobados está en [carga controlada de datos oficiales](docs/carga-datos-oficiales.md).
 
 ## Iniciar la API
 
@@ -109,7 +110,7 @@ docs/                   arquitectura, contratos y coordinación
 tests/                  pruebas aisladas y pruebas opcionales con PostgreSQL
 ```
 
-La aprobación del contrato pedagógico de edición y la carga del catálogo curricular acordado siguen pendientes. No se deben inventar datos académicos para cerrar esas tareas.
+La carga interna del catálogo y las cuentas técnicas del MVP está registrada sin publicar credenciales. Una sustitución posterior por datos institucionales deberá conservar el mismo procedimiento controlado.
 
 ## Continuación del equipo
 
@@ -131,3 +132,9 @@ Los cambios en modelos, contratos compartidos, `pyproject.toml` o `uv.lock` se c
 - [Reproducibilidad desde clon limpio y flujo Docker real](docs/reproducibilidad-clon-limpio-jean-2026-10-15.md)
 - [Alcance de la validación técnica final del viernes](docs/validacion-final-2026-10-16.md)
 - [Pendientes posteriores al cierre del viernes](docs/pendientes-posteriores-al-cierre.md)
+- [Carga controlada de datos oficiales](docs/carga-datos-oficiales.md)
+- [Registro de carga de datos del MVP](docs/registro-carga-datos-mvp-2026-10-22.md)
+- [Migraciones y revisión de cambios de esquema](docs/migraciones.md)
+- [Resolución de la credencial histórica](docs/resolucion-credencial-historica-2026-10-23.md)
+- [Verificación de Ollama en el equipo de Cris](docs/verificacion-ollama-cris-2026-10-23.md)
+- [Cierre final del MVP](docs/cierre-final-2026-10-23.md)

@@ -66,7 +66,8 @@ def main() -> int:
     private.update(quote(value, safe="") for value in list(private))
     catalog_query = text(
         "SELECT datname FROM pg_database WHERE datname ~ "
-        "'^colegio_alfa_(flow|auth|seed|ai_flow)_test_[0-9a-f]{32}$' ORDER BY datname"
+        "'^colegio_alfa_(flow|auth|seed|ai_flow|migration)_test_[0-9a-f]{32}$' "
+        "ORDER BY datname"
     )
     admin = create_engine(admin_url)
     try:
@@ -78,13 +79,16 @@ def main() -> int:
             snapshot = Path(directory)
             with zipfile.ZipFile(io.BytesIO(archive)) as zipped:
                 zipped.extractall(snapshot)
-            if (snapshot / "uv.lock").read_bytes() != (root / "uv.lock").read_bytes():
+            snapshot_lock = (snapshot / "uv.lock").read_text(encoding="utf-8").splitlines()
+            working_lock = (root / "uv.lock").read_text(encoding="utf-8").splitlines()
+            if snapshot_lock != working_lock:
                 raise SystemExit("El lockfile remoto cambió; coordinar el entorno antes de probar.")
             target = snapshot / "tests" / "integration"
             target.mkdir(parents=True, exist_ok=True)
             for filename in (
                 "conftest.py",
                 "test_ai_planning_flow.py",
+                "test_official_data_seed.py",
                 "test_patch_persistence_alejandra.py",
             ):
                 shutil.copy2(root / "tests" / "integration" / filename, target / filename)
@@ -105,14 +109,30 @@ def main() -> int:
             for value in sorted(private, key=len, reverse=True):
                 output = output.replace(value, "[REDACTED]")
             print(output, flush=True)
+            migration_result = subprocess.run(
+                [sys.executable, "tests/integration/check_migrations.py"],
+                cwd=snapshot,
+                env=env,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+            )
+            migration_output = migration_result.stdout + migration_result.stderr
+            for value in sorted(private, key=len, reverse=True):
+                migration_output = migration_output.replace(value, "[REDACTED]")
+            print(migration_output, flush=True)
         with admin.connect() as connection:
             after = set(connection.execute(catalog_query).scalars())
         print(json.dumps({
             "pytest_exit_code": result.returncode,
+            "migration_exit_code": migration_result.returncode,
             "temporary_database_catalog_unchanged": before == after,
             "new_leftover_databases": len(after - before),
         }), flush=True)
-        return result.returncode if before == after else 1
+        if before != after:
+            return 1
+        return result.returncode or migration_result.returncode
     except Exception as exc:
         # La excepción SQL original podría revelar la configuración del equipo.
         print(f"Verificación interrumpida: {type(exc).__name__}; detalles privados omitidos.", file=sys.stderr)

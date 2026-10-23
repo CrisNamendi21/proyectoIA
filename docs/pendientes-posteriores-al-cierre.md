@@ -10,61 +10,34 @@ Esto no significa que el producto completo esté cerrado. Las tareas siguientes 
 
 ## Tareas que Cris hará después
 
-### 1. Restablecer Python 3.12 local — prioridad alta
+### 1. Restablecer Python 3.12 local — completado el 19 de octubre de 2026
 
-Windows bloqueó `.venv\Scripts\python.exe` mediante una directiva de Control de aplicaciones después de haberlo ejecutado correctamente en sesiones anteriores. Las últimas pruebas se completaron en el contenedor oficial Python 3.12, pero el flujo local con `uv run` debe recuperarse.
+El bloqueo de Control de aplicaciones afectaba únicamente al ejecutable antiguo de `.venv\Scripts\python.exe`. El intérprete base CPython 3.12.14 administrado por `uv` funcionaba correctamente, por lo que se reconstruyó el entorno virtual desde `uv.lock` sin desactivar la protección de Windows ni modificar las dependencias declaradas.
 
-Pasos manuales:
+Comandos aplicados:
 
-1. Reiniciar la terminal y comprobar `uv run python --version`.
-2. Si continúa el mensaje de bloqueo, revisar la notificación de Seguridad de Windows o solicitar al administrador que autorice o repare el intérprete administrado por uv. Mantener activa la protección; no deshabilitarla para ejecutar el proyecto.
-3. Confirmar que `uv run python --version` muestra Python 3.12.x y repetir `uv run pytest -q`.
+```powershell
+uv venv --clear --python 3.12 .venv
+uv sync --locked
+uv run python --version
+```
 
-### 2. Reproducir Ollama en el equipo de Cris — prioridad media
+Resultado verificado:
 
-Jean ya verificó desde un clon limpio el backend Docker comunicándose con Ollama y una generación real con `qwen2.5:3b`. Esa evidencia ya está integrada; en el equipo de Cris, Ollama y el modelo continúan ausentes. Repetirla localmente aporta evidencia propia, pero ya no bloquea el cierre técnico compartido.
+- `uv run python --version`: Python 3.12.14.
+- `uv run pytest -q`: 195 aprobadas, 5 omitidas y 1 advertencia.
+- `uv run python tests/integration/run_snapshot.py --ref HEAD`: 226 aprobadas, 1 omitida y 1 advertencia sobre PostgreSQL real.
+- El runner integrado confirmó código de salida 0, catálogo temporal intacto y 0 bases residuales nuevas.
 
-Pasos:
+### 2. Reproducir Ollama en el equipo de Cris — completado el 23 de octubre de 2026
 
-1. Instalar o abrir Ollama en Windows.
-2. Descargar y comprobar el modelo configurado:
+Cris instaló Ollama 0.40.9 y descargó `qwen2.5:3b`. La API local respondió, el backend Docker encontró el modelo mediante `host.docker.internal` y la única prueba real aprobó generación, validación Pydantic, guardado JSONB, propiedad, consulta y logout.
 
-   ```powershell
-   ollama --version
-   ollama pull qwen2.5:3b
-   ollama list
-   Invoke-RestMethod http://localhost:11434/api/tags
-   ```
+La medición del flujo fue de **62.56 segundos**. El runner terminó con 1 prueba aprobada, las migraciones correctas, el catálogo temporal sin cambios y 0 bases residuales nuevas. La evidencia completa está en [verificación de Ollama en el equipo de Cris](verificacion-ollama-cris-2026-10-23.md).
 
-3. Confirmar en el `.env` local, sin mostrarlo ni versionarlo, estos valores ya documentados en `.env.example`:
-   - `OLLAMA_BASE_URL=http://host.docker.internal:11434` para el backend en Docker.
-   - `OLLAMA_MODEL=qwen2.5:3b`.
-   - `OLLAMA_TIMEOUT_SECONDS=120`, ajustándolo localmente solo si una medición real lo justifica.
-4. Reconstruir o recrear el backend para que reciba la configuración vigente.
-5. Comprobar la comunicación desde el contenedor con el procedimiento de [arranque y comprobaciones](infraestructura-jean.md#arranque-y-comprobaciones).
-6. Ejecutar una sola prueba real y aislada:
+### 3. Integrar `Cris-develop` en `main` — completado el 23 de octubre de 2026
 
-   ```powershell
-   uv run python tests/integration/run_snapshot.py --ref HEAD --real-ollama
-   ```
-
-Criterio para marcarla como terminada:
-
-- Ollama responde en `localhost:11434` y el modelo exacto aparece disponible.
-- El backend puede comunicarse con Ollama.
-- La prueba real aprueba generación, validación Pydantic, guardado JSONB, propiedad, lectura y logout.
-- El runner confirma que no dejó bases temporales.
-- El resultado y la duración se agregan a la validación final sin guardar prompts privados ni credenciales.
-
-### 3. Integrar `Cris-develop` en `main` — prioridad alta
-
-La simulación del módulo 6 terminó sin conflictos. El merge real continúa pendiente y debe ejecutarse después de la revisión final del equipo y, si Cris exige evidencia propia de IA, después de la prueba anterior.
-
-Criterio para marcarla como terminada:
-
-- `main` contiene el cierre publicado de `Cris-develop`.
-- El push a `origin/main` termina correctamente.
-- El árbol queda limpio y el commit remoto coincide con el local.
+La revisión final aprobó la suite aislada, el runner con PostgreSQL, las migraciones, el flujo real de Ollama y el control de secretos. Cris autorizó la integración explícita mediante `merge --no-ff`; `main` recibió el estado completo de `Cris-develop` y ambas ramas fueron publicadas.
 
 ### 4. Reproducir el arranque en el equipo de Cris — prioridad baja
 
@@ -80,27 +53,27 @@ Criterio para marcarla como terminada:
 
 | Pendiente | Responsable de coordinar | Resultado esperado |
 | --- | --- | --- |
-| Aprobar el JSON completo de `TeachingPlanDraft` como `Planning.content`, su versión y sus reglas de edición. | Alejandra con Cris y Jean | Contrato compartido actualizado y pruebas acordadas. |
-| Revisar y aprobar el contrato de la edición ya integrada. | Alejandra con Cris y Jean | Confirmación del formato pedagógico, versión, reglas semánticas y pruebas acordadas. |
-| Confirmar si los catálogos seguirán públicos o exigirán sesión. | Alejandra con Cris | Política HTTP explícita en contratos y pruebas. |
-| Decidir revocación de sesión en servidor y protección adicional para peticiones con cookie. | Cris con el equipo | Decisión documentada; implementación y pruebas si se exige. |
-| Proporcionar el catálogo curricular y las cuentas docentes reales por canales apropiados. | Equipo y colegio | Datos aprobados, estrategia de carga y ausencia de datos personales en Git. |
-| Adoptar migraciones para cambios futuros del esquema. | Equipo | Herramienta y procedimiento que sustituyan `create_all()` para evoluciones de base de datos. |
-| Decidir si se reescribe el historial que contenía una credencial antigua. | Equipo | Decisión coordinada; la credencial local ya fue rotada y dejó de ser válida. |
+| Sustituir los datos internos si el proyecto llega a producción institucional. | Equipo y colegio | Catálogo institucional aprobado y cuentas reales tratadas fuera de Git; fuera del alcance del MVP actual. |
 
-## Orden recomendado para continuar
+## Orden aplicado
 
-1. Restablecer la ejecución local de Python 3.12 con `uv`.
-2. Cerrar con Alejandra y Jean los contratos pedagógicos, de catálogos y de seguridad que requieren decisión humana.
-3. Revisar el diff final e integrar `Cris-develop` en `main` cuando el equipo lo apruebe.
-4. Instalar Ollama y repetir la inferencia en el equipo de Cris solo si se requiere evidencia local adicional.
-5. Planificar catálogo real, cuentas, migraciones y cualquier trabajo posterior al MVP.
+1. Se restableció la ejecución local de Python 3.12 con `uv`.
+2. Se cerraron los contratos funcionales necesarios para el MVP.
+3. Se instaló Ollama y se reprodujo la inferencia real en el equipo de Cris.
+4. Se revisó el diff final y se integró `Cris-develop` en `main` con autorización de Cris.
+5. Los datos institucionales reales y cualquier ampliación posterior permanecen fuera del alcance del MVP.
 
 ## Completado después del cierre inicial
 
+- Cris cerró para el MVP `TeachingPlanDraft` versión 1 como contenido persistido, la edición validada, los catálogos con sesión y la aceptación temporal de logout sin revocación en servidor. Alejandra no estaba disponible y no se le atribuyó la aprobación.
 - Alejandra implementó y validó `PATCH /plans/{plan_id}`; Cris integró su prueba PostgreSQL en el runner.
 - Jean verificó un clon limpio, build Docker sin caché, PostgreSQL aislado, comunicación con Ollama y una generación HTTP real.
 - Cris integró ambas entregas y la suite final aprobó 226 pruebas sobre Python 3.12 y PostgreSQL real, sin bases temporales residuales.
+- Cris preparó la carga validada y repetible del catálogo, reforzó las contraseñas iniciales y documentó el procedimiento privado.
+- Cris aprobó y cargó localmente un catálogo interno del MVP y tres cuentas técnicas; la repetición creó cero registros y conservó los hashes existentes.
+- Cris adoptó Alembic, creó la revisión inicial, agregó unicidad curricular y automatizó upgrade, downgrade y detección de cambios sin migración.
+- Cris confirmó nuevamente la revocación de la credencial antigua, auditó todas las referencias, creó un respaldo privado y decidió conservar el historial sin forzar ramas ni clones.
+- Cris instaló Ollama 0.40.9, descargó `qwen2.5:3b` y reprodujo localmente una generación real completa en 62.56 segundos, sin bases temporales residuales.
 
 ## Reglas para estas tareas
 

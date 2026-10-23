@@ -1,50 +1,35 @@
-import math
 from datetime import datetime
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.schemas.planning_content import TeachingPlanDraft
 
 
 PositiveId = Annotated[int, Field(strict=True, gt=0)]
 
 
-def validate_json_value(value: object) -> None:
-    """Reject Python values that would be coerced or cannot be stored as JSON."""
-    if value is None or type(value) in (str, bool, int):
-        return
-    if type(value) is float and math.isfinite(value):
-        return
-    if type(value) is list:
-        for item in value:
-            validate_json_value(item)
-        return
-    if type(value) is dict and all(type(key) is str for key in value):
-        for item in value.values():
-            validate_json_value(item)
-        return
-    raise ValueError("El contenido debe contener exclusivamente valores JSON válidos")
-
-
-class PlanningCreate(BaseModel):
+class PlanningReferences(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     grade_id: PositiveId | None = None
     subject_id: PositiveId | None = None
     curriculum_content_id: PositiveId | None = None
-    content: dict[str, JsonValue]
 
-    @field_validator("content", mode="before")
+
+class PlanningCreate(PlanningReferences):
+    content: TeachingPlanDraft
+
+
+class PlanningUpdate(PlanningReferences):
+    content: TeachingPlanDraft | None = None
+
+    @model_validator(mode="before")
     @classmethod
-    def validate_content(cls, value: object) -> object:
-        if type(value) is not dict:
-            raise ValueError("content debe ser un objeto JSON")
-        validate_json_value(value)
+    def reject_null_content(cls, value: object) -> object:
+        if isinstance(value, dict) and "content" in value and value["content"] is None:
+            raise ValueError("content no puede ser nulo")
         return value
-
-
-class PlanningUpdate(PlanningCreate):
-    # The default permits omission; the inherited validator rejects explicit null.
-    content: dict[str, JsonValue] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def require_changes(self) -> "PlanningUpdate":

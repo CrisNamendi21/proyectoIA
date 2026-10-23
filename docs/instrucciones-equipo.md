@@ -2,6 +2,10 @@
 
 Estas instrucciones parten de la base técnica disponible al finalizar el sábado 10 de octubre de 2026.
 
+## Aviso de sincronización — 23 de octubre de 2026
+
+La [credencial histórica](resolucion-credencial-historica-2026-10-23.md) está revocada y el equipo decidió conservar el historial. No se debe ejecutar ningún `push --force`, rebase masivo o reclonado por este incidente. Basta con actualizar `Cris-develop` mediante `git fetch --all --prune` y `git pull --ff-only origin Cris-develop`. Los archivos privados siguen fuera de Git.
+
 ## Preparación común
 
 1. Actualizar la rama de integración y crear la rama de trabajo correspondiente:
@@ -38,7 +42,7 @@ Estas instrucciones parten de la base técnica disponible al finalizar el sábad
 - Reutilizar `Grade`, `Subject`, `CurriculumContent` y `Planning`; no crear entidades duplicadas.
 - Implementar esquemas en `app/schemas/`, routers delgados en `app/api/` y lógica de negocio en `app/services/plans.py`.
 - Obtener la sesión mediante `get_db_session()` y controlar de forma explícita `commit` y `rollback` en operaciones de escritura.
-- No asumir que “sección” es una columna ni fijar el contenido de `Planning.content` hasta que el equipo apruebe esos contratos.
+- No asumir que “sección” es una columna. Para el MVP, respetar `TeachingPlanDraft` con `schema_version=1` dentro de `Planning.content` y proponer una versión nueva si la ficha oficial exige otros campos.
 - Exportar los routers de catálogos y planificaciones para que Cris los registre en `app/main.py`.
 - Probar validación, persistencia, ausencia de registros y propiedad de las planificaciones con fixtures aisladas.
 
@@ -46,8 +50,8 @@ Estas instrucciones parten de la base técnica disponible al finalizar el sábad
 
 - mecanismo de autenticación e identidad que recibirán los routers;
 - rutas, esquemas Pydantic y respuestas de error;
-- estructura validada de `Planning.content`;
-- contrato entre generación de IA y guardado de planificaciones;
+- cualquier evolución posterior de la versión 1 de `Planning.content`;
+- cambios posteriores del contrato entre generación de IA y guardado de planificaciones;
 - estrategia de datos iniciales y pruebas con PostgreSQL.
 
 ## Entrega de cada módulo

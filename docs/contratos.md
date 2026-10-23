@@ -1,6 +1,6 @@
 # Contratos compartidos
 
-## Estado al 19 de octubre de 2026
+## Estado al 22 de octubre de 2026
 
 Esta página distingue lo implementado y comprobado de los acuerdos que todavía necesita el equipo. La existencia de una propuesta en este documento no la convierte en un contrato aprobado.
 
@@ -9,12 +9,13 @@ Esta página distingue lo implementado y comprobado de los acuerdos que todavía
 | PostgreSQL | Configuración versionada y comprobada desde clon limpio | PostgreSQL exclusivamente en Docker; SQLAlchemy 2 síncrono con Psycopg 3. Desarrollo: usuario `equipo_alfa`, clave definida solo en el entorno local, puerto `5432`, base `colegio_alfa_db` y servicio `alfa-db`. | Definir valores de despliegue, migraciones y datos iniciales oficiales. |
 | Entorno | Implementado y reproducido desde clon limpio | `DATABASE_URL`, sesión y Ollama se configuran por entorno; `.env.example`, `compose.yaml`, `pyproject.toml` y `uv.lock` contienen el contrato reproducible sin secretos reales. Jean verificó build limpio, API Docker, PostgreSQL temporal y Ollama del host. | Confirmar valores de despliegue y repetir localmente en el equipo de Cris solo si se exige evidencia propia. |
 | Nombres ORM | Confirmado e implementado | Clases `User`, `Grade`, `Subject`, `CurriculumContent` y `Planning`; tablas plurales en `snake_case`. | Coordinar cualquier cambio antes de modificar los modelos compartidos. |
-| Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `python -m app.db.init_db` crea las tablas explícitamente. | Migraciones, política de eliminación y datos curriculares iniciales. |
-| Pydantic | Implementado en los módulos actuales | Autenticación, catálogos, planificaciones y salida de IA usan esquemas Pydantic. | Confirmar la forma pedagógica definitiva de `Planning.content`. |
-| Endpoints | Integrados y comprobados mediante ASGI y HTTP Docker real | Salud; `POST /auth/login`; `POST /auth/logout`; `GET /auth/me`; catálogos públicos de solo lectura; `POST /generation`; y creación, listado, detalle y edición parcial bajo `/plans`. El flujo conjunto se comprobó con PostgreSQL real y una inferencia real documentada por Jean. | Falta conformidad de Alejandra sobre el acceso público a catálogos y aprobación compartida del contrato pedagógico de edición. |
-| Usuario autenticado | Implementación integrada, probada y confirmada por Cris para el MVP | `get_current_user` recupera al usuario por el ID de la cookie firmada y exige `is_active`. La cookie contiene solo el ID, es `HttpOnly`, `SameSite=Lax` y dura 8 horas. Generación y planes la utilizan. | Definir si el MVP necesita revocación en servidor y protección adicional frente a solicitudes entre sitios. |
-| `Planning` | Guardado, lectura y edición parcial implementados | Pertenece al usuario autenticado; las referencias curriculares son opcionales, se comprueba su coherencia y `content` acepta un objeto JSON validado. `PATCH /plans/{plan_id}` filtra por propietario, conserva campos omitidos y valida el estado final antes del commit. | Forma pedagógica definitiva, versión del contenido y reglas semánticas de edición. |
-| Intercambio con IA | Ruta, autenticación y transporte real comprobados | `POST /generation` es la ruta del MVP, exige sesión, valida entrada y salida con Pydantic y traduce timeout, indisponibilidad y respuesta inválida a errores controlados. Jean comprobó una llamada real desde el backend Docker a `qwen2.5:3b`; el flujo preservó el borrador completo dentro de `Planning.content`, con los IDs curriculares separados. | Alejandra y el equipo deben confirmar el formato persistido y las reglas pedagógicas de edición. |
+| Modelos ORM | Implementado y comprobado | IDs enteros, claves foráneas explícitas, relaciones bidireccionales, fechas UTC y contenido pedagógico en JSONB. `python -m app.db.init_db` aplica la cabeza de Alembic. | Política de eliminación y cualquier evolución futura del modelo. |
+| Datos iniciales | Catálogo interno y tres cuentas técnicas cargados localmente | `seed_catalogs` valida fuente, versión, aprobación, estructura y huella antes de escribir; `seed_users` crea cuentas individuales con contraseña inicial de al menos 15 caracteres. Ambos conservaron registros existentes en la segunda ejecución. | La migración debe añadir unicidad al contenido antes de permitir cargas concurrentes. Los datos institucionales de producción quedan fuera del alcance actual. |
+| Pydantic | Implementado y aprobado por Cris para el MVP | Autenticación, catálogos, planificaciones y salida de IA usan esquemas Pydantic. `Planning.content` cumple `TeachingPlanDraft` versión 1 y rechaza campos desconocidos. | Una ficha pedagógica oficial podría exigir una versión futura. |
+| Endpoints | Integrados y comprobados mediante ASGI y HTTP Docker real | Salud; `POST /auth/login`; `POST /auth/logout`; `GET /auth/me`; catálogos de solo lectura con sesión; `POST /generation`; y creación, listado, detalle y edición parcial bajo `/plans`. | Revisar cualquier cambio cuando Alejandra esté disponible, sin tratar su ausencia como aprobación personal. |
+| Usuario autenticado | Implementación integrada, probada y confirmada por Cris para el MVP | `get_current_user` recupera al usuario por el ID de la cookie firmada y exige `is_active`. La cookie contiene solo el ID, es `HttpOnly`, `SameSite=Lax` y dura 8 horas. Catálogos, generación y planes la utilizan. El MVP acepta que logout elimina la cookie del cliente sin revocar una copia previa. | Antes de producción: sesiones revocables en servidor, protección CSRF, HTTPS y cookie `Secure`. |
+| `Planning` | Guardado, lectura y edición parcial implementados | Pertenece al usuario autenticado; `content` conserva el borrador pedagógico completo con `schema_version=1`. Los IDs curriculares permanecen separados y, cuando se informan, sus nombres deben coincidir con el contenido. `PATCH /plans/{plan_id}` valida el estado completo antes del commit. | El colegio debe confirmar si una ficha oficial requiere campos adicionales. |
+| Intercambio con IA | Ruta, autenticación, transporte y formato persistido comprobados | `POST /generation` exige sesión y devuelve `TeachingPlanDraft` versión 1. La generación no persiste; el docente puede revisar el borrador y el servidor vuelve a validarlo al crear o editar un plan. | Una versión nueva del formato requerirá contrato y migración explícitos. |
 
 La clave de desarrollo se define solo en el entorno local, no se versiona y no debe reutilizarse en producción.
 
@@ -26,13 +27,13 @@ Esta revisión responde a la propuesta de Jean para preparar el trabajo del juev
 | --- | --- | --- |
 | Ruta de generación | **Confirmada por Cris** | `POST /generation` es la ruta definitiva del MVP. No se creará una ruta de generación paralela. |
 | Identidad y sesión | **Confirmada por Cris para el MVP** | Se conserva la cookie firmada de 8 horas, que contiene solo `User.id`; `get_current_user` exige una cuenta activa y protege generación y planes. `POST /auth/logout` borra la sesión del cliente. |
-| Revocación de sesión | **Pendiente del equipo** | Una copia previa de la cookie continúa válida hasta expirar. La necesidad de revocación inmediata en servidor y de protección adicional frente a solicitudes entre sitios se evaluará por separado; no cambia el contrato integrado actual. |
-| Catálogos | **Confirmados por Cris para integración; revisión pendiente de Alejandra** | Durante el MVP continúan como endpoints públicos de solo lectura porque exponen referencias curriculares y no datos personales. Alejandra debe confirmar esta decisión como responsable del módulo. |
-| Forma de `Planning.content` | **Propuesta compatible; pendiente de Alejandra** | Guardar el objeto completo validado como `TeachingPlanDraft` dentro de `content`; enviar `grade_id`, `subject_id` y `curriculum_content_id` por separado. La generación no crea ni guarda el plan. |
-| Revisión docente antes de guardar | **Propuesta compatible; pendiente de Alejandra** | El docente puede revisar y editar el borrador antes de `POST /plans`. Antes de persistirlo debe volver a validarse como `TeachingPlanDraft`, preservando todos sus campos y estructura. |
-| Versión, metadatos y coherencia semántica | **Pendiente del equipo** | Falta decidir versionado del contenido, metadatos adicionales y la validación entre los nombres del borrador y los IDs curriculares seleccionados. |
+| Revocación de sesión | **Cerrada por Cris para el MVP el 19 de octubre** | Se acepta la cookie firmada de 8 horas sin revocación individual en servidor dentro del entorno controlado del MVP. La revocación, CSRF, HTTPS y `Secure` son requisitos previos a producción. |
+| Catálogos | **Cerrados por Cris para el MVP el 19 de octubre** | Los endpoints son de solo lectura y exigen un usuario autenticado y activo. Alejandra podrá revisarlo después, pero su ausencia no se registra como aprobación. |
+| Forma de `Planning.content` | **Cerrada por Cris para el MVP el 19 de octubre** | Se guarda el objeto completo validado como `TeachingPlanDraft` con `schema_version=1`; `grade_id`, `subject_id` y `curriculum_content_id` permanecen separados. |
+| Revisión docente antes de guardar | **Cerrada por Cris para el MVP el 19 de octubre** | El docente puede revisar y editar el borrador antes de `POST /plans` y mediante `PATCH`; el estado completo se valida otra vez antes de persistirlo. |
+| Versión, metadatos y coherencia semántica | **Cerrada por Cris para el MVP el 19 de octubre** | La versión inicial es 1, no se guardan metadatos técnicos de Ollama dentro del contenido y las referencias curriculares informadas deben coincidir con los nombres del borrador. |
 
-No hacen falta cambios en `Planning`, JSONB ni un servicio adaptador para probar la propuesta. La adaptación mínima consiste en validar el borrador revisado, serializarlo como JSON dentro de `content` y conservar las referencias curriculares como campos separados de `PlanningCreate`.
+No se modifica la entidad `Planning` ni su columna JSONB. Los esquemas validan el borrador versionado, lo serializan dentro de `content` y conservan las referencias curriculares como campos separados de `PlanningCreate`.
 
 ## Verificación integrada de Cris — 14 de octubre de 2026
 
@@ -67,7 +68,7 @@ Sobre el conjunto final, la suite en el contenedor oficial Python 3.12 aprobó *
 - La dependencia cierra la sesión al finalizar la petición.
 - Los servicios que escriban datos deben controlar `commit` y `rollback` explícitamente.
 - Los modelos no abren conexiones ni crean tablas al importarse.
-- La creación de tablas ocurre únicamente cuando se invoca `init_db()`.
+- La creación y evolución de tablas ocurre mediante revisiones Alembic; `init_db()` aplica `upgrade head`.
 
 ## Integración entre módulos
 

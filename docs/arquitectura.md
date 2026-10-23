@@ -23,7 +23,8 @@ app/
   db/
     base.py               DeclarativeBase — implementado, Cris
     session.py            engine, SessionLocal y dependencia — implementado, Cris
-    init_db.py            creación explícita y comando de inicialización — implementado, Cris
+    init_db.py            actualización a la cabeza de Alembic — implementado, Cris
+    migrations/           historial versionado del esquema PostgreSQL — implementado, Cris
   models/                 cinco entidades compartidas — implementado, Cris
   schemas/                autenticación, catálogos, planes y salida de IA
   services/
@@ -41,7 +42,7 @@ PostgreSQL conserva usuarios, catálogos y relaciones mediante columnas relacion
 
 La aplicación crea un solo `engine` y un solo `sessionmaker`. `get_db_session()` entrega una sesión independiente por petición y la cierra al finalizar. Las operaciones futuras que escriban datos deben controlar `commit` y `rollback` de forma explícita.
 
-`init_db()` importa los modelos y ejecuta `Base.metadata.create_all()`. El 10 de octubre se verificaron la conexión mediante `SELECT 1`, las cinco tablas y sus seis claves foráneas en PostgreSQL. Alembic no forma parte de esta etapa.
+`init_db()` aplica `alembic upgrade head`. Alembic conserva el historial del esquema, obtiene la URL desde la configuración de la aplicación y compara sus revisiones con `Base.metadata`. `create_all()` queda limitado a fixtures desechables de pruebas.
 
 ## Configuración e infraestructura
 
@@ -55,6 +56,6 @@ Jean encapsuló Ollama en `app/services/ai/`. La salida se valida con Pydantic y
 
 Alejandra implementó la consulta de catálogos y el guardado, listado y detalle de planificaciones sin duplicar modelos. La edición de planes aún debe comprobar propiedad antes de incorporarse.
 
-`create_app()` registra todos los routers actuales. Generación y planificaciones dependen de `get_current_user`; catálogos permanece como consulta pública. Los errores no controlados de SQLAlchemy se traducen en una respuesta genérica `503` sin detalles de conexión.
+`create_app()` registra todos los routers actuales. Generación, planificaciones y catálogos dependen de `get_current_user`. Los errores no controlados de SQLAlchemy se traducen en una respuesta genérica `503` sin detalles de conexión.
 
 Los contratos aún abiertos están en [decisiones pendientes](decisiones-pendientes.md), y los pasos de continuación están en [instrucciones para el equipo](instrucciones-equipo.md).

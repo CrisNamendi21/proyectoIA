@@ -1,4 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.auth import router as auth_router
@@ -8,6 +12,9 @@ from app.api.health import router as health_router
 from app.api.plans import router as plans_router
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
+
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
 
 def create_app() -> FastAPI:
@@ -35,6 +42,16 @@ def create_app() -> FastAPI:
     app.include_router(catalogs_router)
     app.include_router(create_generation_router("/generation"))
     app.include_router(plans_router)
+    if FRONTEND_DIR.is_dir():
+        @app.get("/", include_in_schema=False)
+        def frontend_index() -> FileResponse:
+            return FileResponse(FRONTEND_DIR / "index.html")
+
+        app.mount(
+            "/frontend",
+            StaticFiles(directory=FRONTEND_DIR),
+            name="frontend",
+        )
     return app
 
 

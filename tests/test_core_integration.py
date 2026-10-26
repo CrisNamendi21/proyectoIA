@@ -39,6 +39,20 @@ def test_main_registers_the_integrated_routes(integrated_app) -> None:
     } <= set(paths)
 
 
+def test_frontend_prototype_is_served_by_the_backend(integrated_app) -> None:
+    with TestClient(integrated_app) as client:
+        page = client.get("/")
+        script = client.get("/frontend/app.js")
+        stylesheet = client.get("/frontend/styles.css")
+
+    assert page.status_code == 200
+    assert "Colegio Alfa · Planificador docente" in page.text
+    assert script.status_code == 200
+    assert "POST /generation" not in script.text
+    assert stylesheet.status_code == 200
+    assert "--accent" in stylesheet.text
+
+
 @pytest.mark.parametrize(
     ("method", "path"),
     [("get", "/auth/me"), ("post", "/generation"), ("get", "/plans")],

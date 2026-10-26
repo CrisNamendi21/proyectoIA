@@ -15,6 +15,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY alembic.ini ./alembic.ini
 COPY app ./app
+COPY frontend ./frontend
 
 EXPOSE 8000
 

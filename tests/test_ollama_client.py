@@ -133,7 +133,8 @@ def test_ollama_client_sends_model_override_and_timeout(monkeypatch) -> None:
         assert request.get_method() == "POST"
         assert request.get_header("Content-type") == "application/json"
         assert json.loads(request.data) == {
-            "model": "other", "prompt": "JSON", "stream": False, "format": "json"
+            "model": "other", "prompt": "JSON", "stream": False,
+            "format": "json", "options": {"temperature": 0}
         }
         assert timeout == 7
         return FakeResponse('{"response": "{}"}')

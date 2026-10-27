@@ -12,7 +12,8 @@ def test_migration_history_has_one_head_matching_the_model() -> None:
     root = Path(__file__).resolve().parents[1]
     scripts = ScriptDirectory.from_config(Config(root / "alembic.ini"))
 
-    assert scripts.get_heads() == ["f6e6cb9d9598"]
+    assert scripts.get_heads() == ["82a4f2c6317e"]
+    assert scripts.get_revision("82a4f2c6317e").down_revision == "f6e6cb9d9598"
     assert scripts.get_revision("f6e6cb9d9598").down_revision == "c040b61622ed"
 
     table = Base.metadata.tables[CurriculumContent.__tablename__]

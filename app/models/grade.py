@@ -9,6 +9,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.models.curriculum_content import CurriculumContent
     from app.models.planning import Planning
+    from app.models.user import User
 
 
 class Grade(Base):
@@ -21,3 +22,6 @@ class Grade(Base):
         back_populates="grade"
     )
     plannings: Mapped[list["Planning"]] = relationship(back_populates="grade")
+    users: Mapped[list["User"]] = relationship(
+        secondary="user_grades", back_populates="grades"
+    )

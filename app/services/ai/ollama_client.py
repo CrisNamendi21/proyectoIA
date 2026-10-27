@@ -48,6 +48,7 @@ class OllamaClient:
             "prompt": prompt,
             "stream": False,
             "format": "json",
+            "options": {"temperature": 0},
         }
         request = urllib.request.Request(
             url=f"{self.base_url.rstrip('/')}/api/generate",

@@ -87,7 +87,11 @@ Invoke-RestMethod http://127.0.0.1:8000/health
 
 La respuesta esperada es `{"status":"ok"}`. `POST /auth/login` establece la sesión, `GET /auth/me` devuelve la identidad pública y `POST /auth/logout` elimina la cookie. Las rutas `/generation` y `/plans` requieren una sesión válida; `PATCH /plans/{plan_id}` permite editar parcialmente solo una planificación del docente autenticado. El contrato HTTP disponible puede consultarse en `http://127.0.0.1:8000/docs`.
 
-La rama de prueba del frontend sirve un prototipo funcional en `http://127.0.0.1:8000/`, bajo el mismo origen de la API. Su alcance y decisiones están en [prototipo funcional del frontend](docs/prototipo-frontend.md).
+La rama de prueba del frontend sirve un prototipo conversacional en
+`http://127.0.0.1:8000/`, bajo el mismo origen de la API. El primer acceso permite
+configurar años y asignaturas; después cada conversación mantiene su contexto y
+usa `/chat/generate`. Su alcance y decisiones están en
+[prototipo funcional del frontend](docs/prototipo-frontend.md).
 
 ## Comprobar PostgreSQL
 

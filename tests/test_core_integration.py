@@ -34,6 +34,8 @@ def test_main_registers_the_integrated_routes(integrated_app) -> None:
         "/catalogs/subjects",
         "/catalogs/contents",
         "/generation",
+        "/chat/generate",
+        "/profile",
         "/plans",
         "/plans/{plan_id}",
     } <= set(paths)
@@ -55,7 +57,13 @@ def test_frontend_prototype_is_served_by_the_backend(integrated_app) -> None:
 
 @pytest.mark.parametrize(
     ("method", "path"),
-    [("get", "/auth/me"), ("post", "/generation"), ("get", "/plans")],
+    [
+        ("get", "/auth/me"),
+        ("post", "/generation"),
+        ("post", "/chat/generate"),
+        ("get", "/profile"),
+        ("get", "/plans"),
+    ],
 )
 def test_sensitive_routes_reject_requests_without_a_session(
     integrated_app, method: str, path: str

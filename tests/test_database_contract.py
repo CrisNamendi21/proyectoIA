@@ -10,6 +10,8 @@ def test_shared_models_keep_the_agreed_relational_contract() -> None:
         "subjects",
         "curriculum_contents",
         "plannings",
+        "user_grades",
+        "user_subjects",
     }
 
     foreign_keys = {
@@ -24,6 +26,10 @@ def test_shared_models_keep_the_agreed_relational_contract() -> None:
         ("plannings", "grade_id", "grades.id"),
         ("plannings", "subject_id", "subjects.id"),
         ("plannings", "curriculum_content_id", "curriculum_contents.id"),
+        ("user_grades", "user_id", "users.id"),
+        ("user_grades", "grade_id", "grades.id"),
+        ("user_subjects", "user_id", "users.id"),
+        ("user_subjects", "subject_id", "subjects.id"),
     }
 
     assert not tables["users"].c.username.nullable
@@ -33,3 +39,4 @@ def test_shared_models_keep_the_agreed_relational_contract() -> None:
     assert tables["plannings"].c.grade_id.nullable
     assert tables["plannings"].c.subject_id.nullable
     assert tables["plannings"].c.curriculum_content_id.nullable
+    assert tables["users"].c.profile_completed_at.nullable

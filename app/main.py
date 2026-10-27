@@ -10,6 +10,7 @@ from app.api.catalogs import router as catalogs_router
 from app.api.generation import create_generation_router
 from app.api.health import router as health_router
 from app.api.plans import router as plans_router
+from app.api.profile import router as profile_router
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 
@@ -40,7 +41,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(catalogs_router)
-    app.include_router(create_generation_router("/generation"))
+    app.include_router(profile_router)
+    app.include_router(create_generation_router("/generation", include_chat=True))
     app.include_router(plans_router)
     if FRONTEND_DIR.is_dir():
         @app.get("/", include_in_schema=False)
